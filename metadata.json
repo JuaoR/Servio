@@ -1,0 +1,6 @@
+{
+  "name": "Servio",
+  "description": "Sistema moderno de gestão de comandas e consumo para restaurantes, bares e cafés.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

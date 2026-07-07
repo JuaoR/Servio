@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+/* GLOBAL CRISP SLATE & EMERALD LIGHT THEME */
+body {
+  background-color: #F8FAFC !important; /* Soft, clean, crisp light slate gray */
+  color: #0F172A !important; /* Elegant, high-contrast deep charcoal */
+}
+
+/* Base dark container mapping to clean white and slate */
+.bg-\[\#0D1117\], 
+.bg-\[\#090D14\],
+.bg-\[\#050505\],
+.bg-\[\#080808\],
+.bg-\[\#000000\] {
+  background-color: #F8FAFC !important;
+  background-image: none !important;
+}
+
+.bg-\[\#161B22\] {
+  background-color: #FFFFFF !important; /* Premium crisp white cards */
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Inner header bar mapping */
+.bg-\[\#1c2128\],
+.bg-\[\#11141a\] {
+  background-color: #F1F5F9 !important; /* Cool contrast light gray-blue */
+  border-color: #E2E8F0 !important;
+}
+
+/* Inner card boxes, tables, nested panels */
+.bg-zinc-900\/30,
+.bg-zinc-900\/40,
+.bg-zinc-900\/50,
+.bg-zinc-950,
+.bg-\[\#21262D\],
+.bg-zinc-900\/20 {
+  background-color: #F8FAFC !important; /* Clean inner wells */
+  border-color: #E2E8F0 !important;
+}
+
+/* Side navigation item background hover and active states */
+.hover\:bg-\[\#21262D\]:hover {
+  background-color: #F1F5F9 !important;
+}
+
+/* High Contrast text selectors */
+.text-white,
+.text-zinc-100,
+.text-\[\#E6EDF3\],
+.text-slate-100,
+.text-zinc-200 {
+  color: #0F172A !important; /* Safe deep charcoal */
+}
+
+.text-zinc-400,
+.text-zinc-500,
+.text-\[\#8B949E\],
+.text-zinc-600 {
+  color: #475569 !important; /* Slate steel gray */
+}
+
+/* Reformulating Orange/Amber to elegant Emerald Green & Teal for contrast and beauty */
+.text-amber-500,
+.text-amber-600,
+.text-amber-400,
+.text-\[\#E8A200\],
+.border-l-amber-500,
+.border-amber-500\/10,
+.border-amber-500\/20,
+.border-amber-500\/30 {
+  color: #059669 !important; /* Solid emerald green */
+}
+
+.bg-amber-500,
+.bg-amber-600,
+.hover\:bg-amber-600:hover,
+.hover\:bg-amber-500:hover {
+  background-color: #10B981 !important; /* Bright crisp emerald */
+  color: #FFFFFF !important;
+}
+
+.bg-amber-500\/10,
+.bg-amber-500\/5 {
+  background-color: #ECFDF5 !important; /* Emerald tint */
+  border-color: #A7F3D0 !important;
+}
+
+/* Specific Border Indicator on Stats Cards */
+.border-l-amber-500 {
+  border-left-color: #10B981 !important;
+}
+
+/* Borders mapping */
+.border-\[\#30363D\],
+.border-\[\#21262D\],
+.border-zinc-800,
+.border-zinc-800\/80,
+.border-zinc-900,
+.border-zinc-800\/50,
+.border-zinc-700 {
+  border-color: #E2E8F0 !important; /* Crisp light gray border */
+}
+
+/* Inputs */
+input, select, textarea {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+input::placeholder {
+  color: #94A3B8 !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #059669 !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Buttons formatting */
+.btn {
+  @apply px-4 py-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-2 transition-all cursor-pointer select-none active:scale-[0.98] tracking-wider uppercase;
+}
+.btn-primary {
+  background-color: #059669 !important; /* Elegant Forest Emerald primary button */
+  color: #FFFFFF !important;
+  border: 1px solid #059669 !important;
+}
+.btn-primary:hover {
+  background-color: #047857 !important;
+  border-color: #047857 !important;
+  color: #FFFFFF !important;
+}
+.btn-secondary {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #334155 !important;
+}
+.btn-secondary:hover {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+.btn-sm {
+  @apply px-3 py-1.5 text-[10px];
+}
+.btn-xs {
+  @apply px-2 py-1 text-[9px];
+}
+.btn-ghost {
+  background-color: transparent !important;
+  color: #475569 !important;
+}
+.btn-ghost:hover {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+/* Specific component visual improvements for clean theme */
+.shadow-2xl {
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08) !important;
+}
