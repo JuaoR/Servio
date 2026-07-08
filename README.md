@@ -2,6 +2,12 @@
 
 Sistema web para gerenciamento de comandas de restaurantes, desenvolvido para agilizar o atendimento e facilitar o controle dos pedidos.
 
+## 🌐 Demonstração
+
+Acesse a versão online do sistema:
+
+**https://https://servio-xi.vercel.app/**
+
 ## Funcionalidades
 
 - Cadastro e gerenciamento de comandas
