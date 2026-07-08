@@ -6,7 +6,7 @@ Sistema web para gerenciamento de comandas de restaurantes, desenvolvido para ag
 
 Acesse a versão online do sistema:
 
-**https://https://servio-xi.vercel.app/**
+**https://servio-xi.vercel.app/**
 
 ## Funcionalidades
 
