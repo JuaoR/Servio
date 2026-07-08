@@ -1,20 +1,42 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Servio
 
-# Run and deploy your AI Studio app
+Sistema web para gerenciamento de comandas de restaurantes, desenvolvido para agilizar o atendimento e facilitar o controle dos pedidos.
 
-This contains everything you need to run your app locally.
+## Funcionalidades
 
-View your app in AI Studio: https://ai.studio/apps/12b517f8-36f1-4a7b-a4d5-f64cb0d488d1
+- Cadastro e gerenciamento de comandas
+- Controle de garçons
+- Cadastro de produtos e categorias
+- Histórico de pedidos
+- Dashboard com informações do sistema
+- Interface moderna e responsiva
 
-## Run Locally
+## Tecnologias
 
-**Prerequisites:**  Node.js
+- React
+- TypeScript
+- Vite
 
+## Como executar
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Instale as dependências:
+
+```bash
+npm install
+```
+
+2. Inicie o projeto:
+
+```bash
+npm run dev
+```
+
+3. Acesse:
+
+```
+http://localhost:5173
+```
+
+---
+
+Desenvolvido para simplificar o gerenciamento de comandas em restaurantes.
