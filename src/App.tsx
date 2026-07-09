@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Garcom } from './types';
+import { supabase } from './supabaseClient';
 
 // Components
 import Login from './components/Login';
@@ -91,6 +92,8 @@ function makeEmptyComandas(): Record<number, Comanda> {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
@@ -154,6 +157,59 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+  // Supabase Auth listener
+  useEffect(() => {
+    // 1. Obter sessão inicial
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      if (currentSession) {
+        setIsLoggedIn(true);
+      }
+    });
+
+    // 2. Ouvir mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+      if (newSession) {
+        setIsLoggedIn(true);
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecoveryMode(true);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setIsRecoveryMode(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Buscar dados do restaurante após login
+  useEffect(() => {
+    if (isLoggedIn && session?.user) {
+      const fetchRestaurant = async () => {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('restaurant_id, restaurants(name)')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileData && !profileError) {
+            const rName = (profileData as any).restaurants?.name;
+            if (rName) {
+              setState(prev => ({ ...prev, rname: rName }));
+            }
+          }
+        } catch (e) {
+          console.error('Erro ao obter restaurante:', e);
+        }
+      };
+
+      fetchRestaurant();
+    }
+  }, [isLoggedIn, session]);
 
   // Keep digital clock updated
   useEffect(() => {
@@ -357,15 +413,30 @@ export default function App() {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+    });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setIsLoggedIn(false);
+    setSession(null);
+    setIsRecoveryMode(false);
   };
 
   // Auth gate
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLoginSuccess} />;
+  if (!isLoggedIn || isRecoveryMode) {
+    return (
+      <Login 
+        onLogin={handleLoginSuccess} 
+        isRecoveryMode={isRecoveryMode}
+        onRecoveryComplete={() => {
+          setIsRecoveryMode(false);
+          supabase.auth.signOut();
+        }}
+      />
+    );
   }
 
   const renderCurrentView = () => {
