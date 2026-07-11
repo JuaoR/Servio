@@ -186,6 +186,15 @@ RETURNS UUID AS $$
     SELECT restaurant_id FROM public.profiles WHERE id = auth.uid();
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
+-- Função Helper Segura para verificar se o usuário atual é admin (evita recursão infinita no RLS)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE id = auth.uid() AND role = 'admin'
+    );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- POLÍTICAS PARA RESTAURANTS
 CREATE POLICY "Users can view their own restaurant" ON public.restaurants
     FOR SELECT USING (id = public.get_user_restaurant_id());
@@ -203,10 +212,7 @@ CREATE POLICY "Users can update their own profile" ON public.profiles
 CREATE POLICY "Admins can manage profiles in their restaurant" ON public.profiles
     FOR ALL USING (
         restaurant_id = public.get_user_restaurant_id() AND 
-        EXISTS (
-            SELECT 1 FROM public.profiles 
-            WHERE id = auth.uid() AND role = 'admin'
-        )
+        public.is_admin()
     );
 
 -- POLÍTICAS PARA CATEGORIES
