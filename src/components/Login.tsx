@@ -5,17 +5,21 @@ import {
   Mail, 
   Lock, 
   ArrowRight, 
-  ClipboardList, 
-  Package, 
   Sparkles, 
   LogIn, 
   Eye, 
   EyeOff, 
   User, 
   CheckCircle2, 
-  AlertTriangle 
+  AlertTriangle,
+  HelpCircle,
+  Hash,
+  AtSign,
+  Store,
+  ArrowLeft
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+
 
 interface LoginProps {
   onLogin: () => void;
@@ -30,15 +34,29 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
   
   // Form fields
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [restaurantName, setRestaurantName] = useState('');
   const [ownerName, setOwnerName] = useState('');
+  const [identifier, setIdentifier] = useState('');
+  
+  // Identifier verification states
+  const [isCheckingIdentifier, setIsCheckingIdentifier] = useState(false);
+  const [identifierStatus, setIdentifierStatus] = useState<'idle' | 'available' | 'taken' | 'invalid'>('idle');
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'available' | 'taken' | 'invalid'>('idle');
+  const [isEmployeeLogin, setIsEmployeeLogin] = useState(false);
   
   // UX states
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isDashboardHovered, setIsDashboardHovered] = useState(false);
   
   // Cooldown states (UX protection against brute force)
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -52,6 +70,82 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
       setSuccess(null);
     }
   }, [isRecoveryMode]);
+
+  // Debounce identifier check for signup
+  useEffect(() => {
+    if (view !== 'signup') return;
+    
+    if (identifier.length === 0) {
+      setIdentifierStatus('idle');
+      return;
+    }
+
+    const isValid = /^[a-z0-9-]{4,20}$/.test(identifier);
+    if (!isValid) {
+      setIdentifierStatus('invalid');
+      return;
+    }
+
+    setIsCheckingIdentifier(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { data: exists, error } = await supabase.rpc('check_identifier_exists', { identifier_to_check: identifier });
+        
+        if (exists) {
+          setIdentifierStatus('taken');
+        } else {
+          setIdentifierStatus('available');
+        }
+      } catch (err) {
+        console.error('RPC falhou, assumindo disponível para não travar o fluxo', err);
+        setIdentifierStatus('available');
+      } finally {
+        setIsCheckingIdentifier(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [identifier, view]);
+
+  
+  // Real-time email validation
+  useEffect(() => {
+    if (view !== 'signup') {
+      setEmailStatus('idle');
+      return;
+    }
+
+    if (!email) {
+      setEmailStatus('idle');
+      return;
+    }
+
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!isValid) {
+      setEmailStatus('invalid');
+      return;
+    }
+
+    setIsCheckingEmail(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { data: exists, error } = await supabase.rpc('check_email_exists', { email_to_check: email });
+        
+        if (exists) {
+          setEmailStatus('taken');
+        } else {
+          setEmailStatus('available');
+        }
+      } catch (err) {
+        console.error('RPC falhou, assumindo disponível para não travar o fluxo', err);
+        setEmailStatus('available');
+      } finally {
+        setIsCheckingEmail(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [email, view]);
 
   // Load and check cooldown from localStorage on mount
   useEffect(() => {
@@ -124,7 +218,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
   const getPasswordStrength = () => {
     if (!password) return { label: '', color: 'bg-zinc-200', textClass: 'text-zinc-400' };
     if (strengthPoints <= 2) return { label: 'Fraca', color: 'bg-red-500', textClass: 'text-red-500' };
-    if (strengthPoints < 5) return { label: 'Média', color: 'bg-amber-500', textClass: 'text-amber-500' };
+    if (strengthPoints < 5) return { label: 'Média', color: 'bg-orange-500', textClass: 'text-orange-500' };
     return { label: 'Forte', color: 'bg-emerald-500', textClass: 'text-emerald-500' };
   };
 
@@ -163,14 +257,51 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
       }
       setIsLoading(true);
       try {
-        const { error: authError } = await supabase.auth.signInWithPassword({
-          email,
+        let loginEmail = email;
+        if (isEmployeeLogin) {
+          if (!identifier || !username) {
+            setError('Preencha o identificador do restaurante e o usuário.');
+            setIsLoading(false);
+            return;
+          }
+          loginEmail = `${username.toLowerCase().trim()}@${identifier}.com`;
+          
+          const { data: restData, error: restError } = await supabase
+            .from('restaurants')
+            .select('id')
+            .eq('id', identifier)
+            .maybeSingle();
+          
+          if (!restData || restError) {
+            setError('Identificador do restaurante não encontrado.');
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
           password
         });
         if (authError) {
           handleFailedAttempt();
           setError(translateAuthError(authError.message));
-        } else {
+        } else if (authData.user) {
+          if (isEmployeeLogin) {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('restaurant_id')
+              .eq('id', authData.user.id)
+              .single();
+              
+            if (profileError || profileData?.restaurant_id !== identifier) {
+              await supabase.auth.signOut();
+              setError('Usuário não cadastrado neste restaurante.');
+              setIsLoading(false);
+              return;
+            }
+          }
+          
           // Reset cooldown on successful login
           setFailedAttempts(0);
           localStorage.removeItem('servio_auth_attempts');
@@ -185,6 +316,13 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
 
     // 2. SIGNUP FLOW
     if (view === 'signup') {
+      setHasAttemptedSubmit(true);
+      if (password !== confirmPassword) {
+        return;
+      }
+      if (!agreedToTerms) {
+        return;
+      }
       if (!isPasswordValid) {
         setError('A senha não atende a todos os requisitos de segurança.');
         return;
@@ -197,7 +335,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           options: {
             data: {
               restaurant_name: restaurantName,
-              name: ownerName
+              name: ownerName,
+              restaurant_id: identifier
             }
           }
         });
@@ -224,6 +363,17 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
     if (view === 'forgot') {
       setIsLoading(true);
       try {
+        // Primeiro, verifica se o e-mail existe usando o RPC
+        const { data: emailExists, error: checkError } = await supabase.rpc('check_email_exists', { email_to_check: email });
+        
+        // Se a chamada RPC falhar (ex: função não criada no banco), ignoramos e prosseguimos
+        // para o fluxo padrão do Supabase para não travar o usuário.
+        if (!checkError && !emailExists) {
+          setError('Este e-mail não está cadastrado em nosso sistema.');
+          setIsLoading(false);
+          return;
+        }
+
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}`
         });
@@ -271,165 +421,123 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-center overflow-hidden relative font-sans">
-      
-      {/* Background ambient texture for restaurant atmosphere - Light style */}
-      <div 
-        className="absolute inset-0 bg-[url('/src/assets/images/restaurant_light_bg_1783448355942.jpg')] bg-cover bg-left-bottom lg:bg-center bg-no-repeat opacity-[0.16] pointer-events-none mix-blend-multiply z-0"
-      />
-
-      {/* Vertical Wavy Green Ribbon Divider */}
-      <div className="hidden lg:block absolute top-0 bottom-0 left-[50.5%] -translate-x-1/2 w-48 pointer-events-none z-10 h-full">
-        <svg className="w-full h-full" viewBox="0 0 120 1080" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="greenRibbonGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#098043" stopOpacity="1" />
-              <stop offset="75%" stopColor="#098043" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#098043" stopOpacity="0.35" />
-            </linearGradient>
-            <linearGradient id="glowGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#098043" stopOpacity="0.15" />
-              <stop offset="75%" stopColor="#098043" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#098043" stopOpacity="0.01" />
-            </linearGradient>
-          </defs>
-          <path 
-            d="M 52 0 C 27 300, 80 700, 14 1080 L 106 1080 C 130 700, 53 300, 68 0 Z" 
-            fill="url(#glowGrad)"
-          />
-          <path 
-            d="M 57 0 C 32 300, 85 700, 34 1080 L 78 1080 C 112 700, 48 300, 63 0 Z" 
-            fill="url(#greenRibbonGrad)"
-          />
-        </svg>
-      </div>
-
-      <div className="w-full max-w-[1360px] mx-auto z-10 grid grid-cols-1 lg:grid-cols-12 min-h-screen items-center">
-        {/* LEFT PANEL - Landing Content (Col-span 7) */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-6 md:p-12 lg:p-14 xl:p-16 py-12 lg:py-20 z-10 relative h-full">
-          {/* Brand Header */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-md border border-zinc-200">
-              <ChefHat className="text-[#098043]" size={26} />
-            </div>
-            <div>
-              <span className="text-3xl font-sans tracking-tight font-extrabold text-[#0F172A] block leading-none">Servio</span>
-              <span className="text-[9px] tracking-[0.2em] uppercase font-black text-[#098043] block mt-1.5">Gestão de Comandas</span>
-            </div>
-          </div>
-
-          {/* Hero Section */}
-          <div className="my-12 lg:my-8 max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#E8F5E9] text-[#098043] text-xs font-bold tracking-wide uppercase mb-8">
-                Sistema completo para restaurantes
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-[#0F172A] leading-[1.12] mb-6">
-                O controle do seu <br />
-                restaurante na <br />
-                <span className="text-[#098043]">palma da sua mão.</span>
-              </h1>
-
-              <p className="text-zinc-600 text-sm md:text-base mb-10 leading-relaxed">
-                Com o <strong className="text-[#098043] font-bold">Servio</strong>, você lança comandas, controla o estoque, acompanha vendas e entrega relatórios em tempo real. Mais agilidade, menos erros, mais resultados.
-              </p>
-            </motion.div>
-
-            {/* Value Props Horizontal Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-zinc-200/60">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-lg bg-[#E8F5E9] flex items-center justify-center shrink-0 shadow-sm">
-                  <ClipboardList className="text-[#098043]" size={22} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Comandas Digitais</h3>
-                  <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                    Abertura rápida de mesas e consumo com alertas de espera.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-12 h-12 rounded-lg bg-[#E8F5E9] flex items-center justify-center shrink-0 shadow-sm">
-                  <Package className="text-[#098043]" size={22} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#0F172A]">Estoque Inteligente</h3>
-                  <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                    Controle de produtos e ingredientes com precisão.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-[11px] text-zinc-400 uppercase tracking-wider pt-6 mt-8 lg:mt-0">
-            <span>&copy; {new Date().getFullYear()} Servio — Todos os direitos reservados.</span>
-          </div>
+    <>
+      <main className="servio-shell">
+        <div className="servio-bg" aria-hidden="true">
+          <div className="orb orb-1" />
+          <div className="orb orb-2" />
+          <div className="grid-noise" />
         </div>
 
-        {/* RIGHT PANEL - Forms Card */}
-        <div className="lg:col-span-5 flex items-center justify-center p-6 md:p-12 lg:p-10 xl:p-12 z-10 relative">
-          <div className="absolute top-[10%] right-[5%] w-[450px] h-[450px] rounded-full bg-emerald-500/5 blur-[80px] pointer-events-none -z-10" />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="w-full max-w-[550px] bg-white border border-zinc-200 rounded-xl p-10 md:p-12 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.06)]"
-          >
-            <div className="mb-6 text-center">
-              <div className="inline-flex w-16 h-16 rounded-full bg-[#E8F5E9] items-center justify-center shadow-inner">
-                <ChefHat className="text-[#098043]" size={28} />
+        <div className="servio-container">
+          {/* LEFT / HERO */}
+          <section className="servio-hero">
+            <header className="brand">
+              <div className="brand-mark" aria-hidden="true">
+                <ChefHat size={20} strokeWidth={2.4} />
               </div>
-              <h2 className="text-2xl font-extrabold text-[#0F172A] tracking-tight mt-4">
-                {view === 'login' && 'Bem-vindo de volta!'}
-                {view === 'signup' && 'Crie sua conta grátis'}
-                {view === 'forgot' && 'Recuperar Senha'}
-                {view === 'reset' && 'Nova Senha'}
-                {view === 'confirm_email' && 'Verifique seu e-mail'}
-              </h2>
-              <p className="text-zinc-500 text-sm mt-1">
-                {view === 'login' && 'Acesse sua central de comando'}
-                {view === 'signup' && 'Insira os dados para se cadastrar no sistema.'}
-                {view === 'forgot' && 'Enviaremos um link de recuperação para seu e-mail'}
-                {view === 'reset' && 'Defina uma nova senha para acessar sua conta'}
-                {view === 'confirm_email' && 'Verificação de conta necessária'}
+              <div className="brand-text">
+                <span className="brand-name">Servio</span>
+                <span className="brand-tag">Gestão de restaurantes</span>
+              </div>
+            </header>
+
+            <div className={`hero-body ${view === 'signup' ? 'hidden lg:block' : ''}`}>
+              <h1 className="hero-title">
+                Gerencie seu restaurante
+                <br />
+                <em>de qualquer lugar.</em>
+              </h1>
+
+              <p className="hero-sub">
+                Com o <strong>Servio</strong>, você controla comandas, vendas e equipe em tempo real.
+                Mais agilidade, menos erros, mais resultados.
               </p>
+
+              <ul className="hero-list">
+                <li>
+                  <span className="dot" /> Toda a equipe sincronizada em tempo real
+                </li>
+                <li>
+                  <span className="dot" /> Relatórios de vendas
+                </li>
+                <li>
+                  <span className="dot" /> Controle de equipe e permissões
+                </li>
+              </ul>
             </div>
 
-            {/* Error and Success Alerts */}
-            {error && (
-              <div className="mb-5 p-4 rounded-lg bg-red-50 text-red-700 text-xs border border-red-100 flex items-start gap-2.5">
-                <AlertTriangle className="shrink-0 text-red-500" size={16} />
-                <span className="leading-normal">{error}</span>
-              </div>
-            )}
-            {success && (
-              <div className="mb-5 p-4 rounded-lg bg-emerald-50 text-emerald-800 text-xs border border-emerald-100 flex items-start gap-2.5">
-                <CheckCircle2 className="shrink-0 text-emerald-600" size={16} />
-                <span className="leading-normal">{success}</span>
-              </div>
-            )}
+          </section>
 
-            {view !== 'confirm_email' ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
+          {/* RIGHT / CARD */}
+          <section className="servio-card-wrap">
+            <div className={`servio-card ${(view === 'signup' || (view === 'login' && isEmployeeLogin)) ? '!p-4 sm:!p-5 sm:!px-6' : '!p-5 sm:!p-6 sm:!px-8'} relative`}>
+              
+              {view === 'signup' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewState('login');
+                    setIsEmployeeLogin(false);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="absolute top-4 left-4 p-1.5 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded-full transition-all"
+                  title="Voltar para login"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+
+
+              <div className={`card-head mb-4 ${view === 'signup' ? '!mb-3' : ''}`}>
+                {view !== 'signup' && (
+                  <div className="card-mark" aria-hidden="true">
+                    <ChefHat size={22} strokeWidth={2.4} />
+                  </div>
+                )}
+                <h2 className="card-title">
+                  {view === 'login' && 'Bem-vindo(a)!'}
+                  {view === 'signup' && 'Crie sua conta'}
+                  {view === 'forgot' && 'Recuperar senha'}
+                  {view === 'reset' && 'Nova senha'}
+                  {view === 'confirm_email' && 'Verifique seu e-mail'}
+                </h2>
+                <p className={`card-sub ${view === 'signup' ? 'text-[11px] mt-0.5' : ''}`}>
+                  {view === 'login' && (isEmployeeLogin ? 'Acesse seu ambiente de trabalho' : 'Acesse sua central de comando')}
+                  {view === 'signup' && 'Insira os dados para cadastrar seu restaurante'}
+                  {view === 'forgot' && 'Insira seu email para recuperar'}
+                  {view === 'reset' && 'Crie uma nova senha segura'}
+                  {view === 'confirm_email' && 'Quase lá!'}
+                </p>
+              </div>
+
+
+              {error && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-[13px] font-medium text-center animate-in fade-in zoom-in-95 duration-200">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-[13px] font-medium text-center animate-in fade-in zoom-in-95 duration-200">
+                  {success}
+                </div>
+              )}
+
+              {view !== 'confirm_email' ? (
+
+                <form onSubmit={handleSubmit} className={`card-form ${view === 'signup' ? '!gap-1.5' : (view === 'login' && isEmployeeLogin) ? '!gap-2' : '!gap-3'}`}>
                 
                 {/* 1. Sign Up Specific Fields */}
                 {view === 'signup' && (
                   <>
                     <div className="group">
-                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
-                        Nome do Estabelecimento
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                        Nome do Restaurante
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
-                          <Sparkles size={18} />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                          <Store size={16} />
                         </div>
                         <input
                           type="text"
@@ -437,19 +545,59 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           disabled={isLoading}
                           value={restaurantName}
                           onChange={(e) => setRestaurantName(e.target.value)}
-                          placeholder="Ex: Pizzaria do Zé"
-                          className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                          placeholder="Ex: Los Pollos Hermanos"
+                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
                         />
                       </div>
                     </div>
 
                     <div className="group">
-                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
-                        Seu Nome Completo
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors flex items-center gap-1 relative">
+                        Identificador
+                        <div className="group/tooltip relative flex items-center">
+                          <HelpCircle size={14} className="text-zinc-400 hover:text-[#098043] cursor-help" />
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-white text-zinc-900 border border-zinc-200 text-[11px] leading-relaxed rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 hidden group-hover/tooltip:block font-normal normal-case tracking-normal text-center">
+                            Seu identificador é único, escolhido por você, e é o que seus funcionários usam para acessar o sistema.
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white drop-shadow-sm"></div>
+                          </div>
+                        </div>
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
-                          <User size={18} />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                          <AtSign size={16} />
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          disabled={isLoading}
+                          value={identifier}
+                          onChange={(e) => setIdentifier(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="Ex: pizzaria-westeros"
+                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${identifierStatus === 'invalid' || identifierStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : identifierStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                        />
+                      </div>
+                      <div className={`mt-1 text-[10px] font-medium leading-tight ${identifier.length > 0 ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
+                        {isCheckingIdentifier ? (
+                          <span className="text-zinc-500 flex items-center gap-1"><span className="w-2.5 h-2.5 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin"></span> Verificando...</span>
+                        ) : identifierStatus === 'invalid' ? (
+                          <span className="text-red-500">❌ Deve conter entre 4 e 20 caracteres.</span>
+                        ) : identifierStatus === 'taken' ? (
+                          <span className="text-red-500">❌ Já em uso</span>
+                        ) : identifierStatus === 'available' ? (
+                          <span className="text-emerald-500">✔ Disponível</span>
+                        ) : (
+                          <span>&nbsp;</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                        Nome Completo
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                          <User size={16} />
                         </div>
                         <input
                           type="text"
@@ -457,16 +605,95 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           disabled={isLoading}
                           value={ownerName}
                           onChange={(e) => setOwnerName(e.target.value)}
-                          placeholder="Ex: José da Silva"
-                          className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                          placeholder="Ex: Jon Snow"
+                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
                         />
+                      </div>
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                        E-MAIL
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                          <Mail size={16} />
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          disabled={isLoading}
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="seu@email.com"
+                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${emailStatus === 'invalid' || emailStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : emailStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                        />
+                      </div>
+                      <div className={`mt-1 text-[10px] font-medium leading-tight ${email.length > 0 ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
+                        {isCheckingEmail ? (
+                          <span className="text-zinc-500 flex items-center gap-1"><span className="w-2.5 h-2.5 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin"></span> Verificando...</span>
+                        ) : emailStatus === 'invalid' ? (
+                          <span className="text-red-500">❌ E-mail inválido</span>
+                        ) : emailStatus === 'taken' ? (
+                          <span className="text-red-500">❌ E-mail já cadastrado</span>
+                        ) : emailStatus === 'available' ? (
+                          <span className="text-emerald-500">✔ E-mail disponível</span>
+                        ) : (
+                          <span>&nbsp;</span>
+                        )}
                       </div>
                     </div>
                   </>
                 )}
 
+                {/* Identifier Field (For Employee Login) */}
+                {view === 'login' && isEmployeeLogin && (
+                  <div className="group">
+                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
+                      Identificador do restaurante
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
+                        <AtSign size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        disabled={isLoading}
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="Ex: pizzaria-westeros"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Employee Username Field */}
+                {view === 'login' && isEmployeeLogin && (
+                  <div className="group">
+                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
+                      USUÁRIO
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
+                        <User size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        disabled={isLoading}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Nome de usuário"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* 2. Email Field (For Login, SignUp, and Forgot view) */}
-                {view !== 'reset' && (
+                {view !== 'reset' && view !== 'signup' && (!isEmployeeLogin || view !== 'login') && (
                   <div className="group">
                     <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
                       E-MAIL
@@ -491,7 +718,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {/* 3. Password Field (For Login, SignUp, and Reset views) */}
                 {view !== 'forgot' && (
                   <div className="group">
-                    <div className="flex justify-between items-center mb-2">
+                    <div className={`flex justify-between items-center ${view === 'signup' ? 'mb-1.5' : 'mb-2'}`}>
                       <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider group-focus-within:text-[#098043] transition-colors">
                         SENHA
                       </label>
@@ -506,8 +733,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                       )}
                     </div>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
-                        <Lock size={18} />
+                      <div className={`absolute inset-y-0 left-0 flex items-center pointer-events-none text-zinc-400 ${view === 'signup' ? 'pl-3' : 'pl-4'}`}>
+                        <Lock size={view === 'signup' ? 16 : 18} />
                       </div>
                       <input
                         type={showPassword ? 'text' : 'password'}
@@ -516,71 +743,102 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={view === 'reset' ? 'Nova senha' : 'Sua senha'}
-                        className="w-full pl-11 pr-12 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                        className={`w-full bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all shadow-sm ${view === 'signup' ? 'pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px]' : 'pl-11 pr-12 py-3.5 text-sm'}`}
                       />
                       <button
                         type="button"
                         disabled={isLoading}
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors"
+                        className={`absolute inset-y-0 right-0 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors ${view === 'signup' ? 'pr-3' : 'pr-4'}`}
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? <EyeOff size={view === 'signup' ? 16 : 18} /> : <Eye size={view === 'signup' ? 16 : 18} />}
                       </button>
                     </div>
                   </div>
                 )}
 
                 {/* 4. Password Strength Indicators (SignUp & Reset views only) */}
-                {(view === 'signup' || view === 'reset') && password && (
-                  <div className="space-y-2.5 pt-1">
-                    {/* Strength Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center text-[10px] font-bold text-zinc-500">
-                        <span>FORÇA DA SENHA:</span>
-                        <span className={`uppercase ${strength.textClass}`}>{strength.label}</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${strength.color} transition-all duration-300`} 
-                          style={{ width: `${(strengthPoints / 5) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Requirements Checklists */}
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] font-medium text-zinc-500">
-                      <div className="flex items-center gap-1.5">
-                        <span className={hasLength ? 'text-emerald-600' : 'text-zinc-300'}>
-                          {hasLength ? '✓' : '✗'}
-                        </span>
-                        <span className={hasLength ? 'text-emerald-700' : ''}>Mín. 8 caracteres</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={hasUpper ? 'text-emerald-600' : 'text-zinc-300'}>
-                          {hasUpper ? '✓' : '✗'}
-                        </span>
-                        <span className={hasUpper ? 'text-emerald-700' : ''}>Letra maiúscula</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={hasLower ? 'text-emerald-600' : 'text-zinc-300'}>
-                          {hasLower ? '✓' : '✗'}
-                        </span>
-                        <span className={hasLower ? 'text-emerald-700' : ''}>Letra minúscula</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={hasNumber ? 'text-emerald-600' : 'text-zinc-300'}>
-                          {hasNumber ? '✓' : '✗'}
-                        </span>
-                        <span className={hasNumber ? 'text-emerald-700' : ''}>Número</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 col-span-2">
-                        <span className={hasSpecial ? 'text-emerald-600' : 'text-zinc-300'}>
-                          {hasSpecial ? '✓' : '✗'}
-                        </span>
-                        <span className={hasSpecial ? 'text-emerald-700' : ''}>Caractere especial (@$!%*?&#)</span>
-                      </div>
-                    </div>
+                {/* 4. Password Strength Indicators (SignUp & Reset views only) */}
+                {(view === 'signup' || view === 'reset') && (
+                  <div className="space-y-1 h-6">
+                    {password && (
+                      <>
+                        <div className="flex justify-between items-center text-[10px] font-bold text-zinc-500">
+                          <div className="h-1 flex-1 bg-zinc-100 rounded-full overflow-hidden mr-3">
+                            <div 
+                              className={`h-full ${strength.color} transition-all duration-300`} 
+                              style={{ width: `${(strengthPoints / 5) * 100}%` }}
+                            />
+                          </div>
+                          <span className={`uppercase ${strength.textClass}`}>{strength.label}</span>
+                        </div>
+                        <div className="text-[10px] text-red-500 font-medium leading-none">
+                          {!hasLength ? 'Mínimo 8 caracteres.' :
+                           !hasNumber ? 'Deve conter pelo menos 1 número.' :
+                           !hasUpper ? 'Deve conter 1 letra maiúscula.' :
+                           !hasLower ? 'Deve conter 1 letra minúscula.' :
+                           !hasSpecial ? 'Deve conter 1 caractere especial.' : ''}
+                        </div>
+                      </>
+                    )}
                   </div>
+                )}
+
+                {view === 'signup' && (
+                  <>
+                    <div className="group">
+                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1 group-focus-within:text-[#098043] transition-colors">
+                        Confirmar senha
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
+                          <Lock size={16} />
+                        </div>
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          required
+                          disabled={isLoading}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirmar sua senha"
+                          className={`w-full pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px] bg-white border ${(confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                        />
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    {((confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password)) && (
+                      <div className="mt-1">
+                        <span className="text-[10px] text-red-500 font-medium leading-none">As senhas não coincidem.</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col mt-2">
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="terms"
+                          checked={agreedToTerms}
+                          onChange={(e) => { setAgreedToTerms(e.target.checked); if (hasAttemptedSubmit) setHasAttemptedSubmit(false); }}
+                          className="mt-0.5 rounded border-zinc-300 text-[#098043] focus:ring-[#098043]"
+                        />
+                        <label htmlFor="terms" className="text-[11px] text-zinc-600 leading-tight">
+                          Ao criar conta, concordo com os <a href="#" className="font-semibold text-zinc-800 hover:underline">Termos de uso</a> e <a href="#" className="font-semibold text-zinc-800 hover:underline">Política de privacidade</a>
+                        </label>
+                      </div>
+                      {(hasAttemptedSubmit && !agreedToTerms) && (
+                        <div className="pl-5 mt-0.5">
+                          <span className="text-[10px] text-red-500 font-medium leading-none">Você precisa concordar com os Termos.</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 {/* 5. Cooldown Lock Info */}
@@ -594,8 +852,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {/* 6. Submit Button with Spinner */}
                 <button
                   type="submit"
-                  disabled={isLoading || (view === 'login' && cooldownSeconds > 0) || ((view === 'signup' || view === 'reset') && !isPasswordValid)}
-                  className="w-full mt-6 bg-[#098043] hover:bg-[#076635] disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all duration-300 shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer text-sm"
+                  disabled={isLoading || (view === 'login' && cooldownSeconds > 0) || ((view === 'signup' || view === 'reset') && !isPasswordValid) || (view === 'signup' && identifierStatus !== 'available') || (view === 'signup' && emailStatus !== 'available')}
+                  className={`hover-shine relative w-full bg-[#098043] hover:bg-[#076635] disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all duration-300 shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${view === "signup" ? "mt-2 py-2.5 text-[13.5px]" : "mt-3 py-3.5 text-sm"}`}
                 >
                   {isLoading ? (
                     <>
@@ -604,21 +862,41 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                     </>
                   ) : (
                     <>
-                      <LogIn size={16} />
-                      <span>
+                      <span className="text-white">
                         {view === 'login' && 'Entrar'}
                         {view === 'signup' && 'Cadastrar'}
                         {view === 'forgot' && 'Enviar link de recuperação'}
                         {view === 'reset' && 'Redefinir e Salvar'}
                       </span>
-                      <ArrowRight size={16} />
+                      {view === 'login' && <ArrowRight size={18} className="absolute right-4 text-white" />}
                     </>
                   )}
                 </button>
+
+                {view === 'login' && (
+                  <div className="mt-5">
+                    <div className="relative flex items-center py-2 mb-2">
+                      <div className="flex-grow border-t border-zinc-200"></div>
+                      <span className="flex-shrink-0 mx-4 text-[10px] uppercase font-bold text-zinc-400 bg-white px-2">OU</span>
+                      <div className="flex-grow border-t border-zinc-200"></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEmployeeLogin(!isEmployeeLogin);
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      className="w-full bg-white border border-[#098043] text-[#098043] hover:bg-emerald-50 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer py-3 text-sm shadow-sm active:scale-[0.98]"
+                    >
+                      <User size={18} />
+                      {isEmployeeLogin ? 'Entrar como Administrador' : 'Entrar como Funcionário'}
+                    </button>
+                  </div>
+                )}
               </form>
-            ) : (
-              /* 7. Confirm Email View */
-              <div className="space-y-6 text-center py-4">
+              ) : (
+                <div className="space-y-6 text-center py-4">
                 <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl max-w-sm mx-auto text-emerald-800 text-sm">
                   <p className="leading-relaxed">
                     Cadastrado efetuado com sucesso! Enviamos um link de confirmação para o seu e-mail: <strong>{email}</strong>.
@@ -634,18 +912,20 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                   Voltar para o Login
                 </button>
               </div>
-            )}
-
-            {/* Form Nav footer links */}
+              )}
+              
+              {/* Form Nav footer links */}
             {view !== 'confirm_email' && (
-              <div className="mt-8 pt-6 border-t border-zinc-100 text-center flex flex-col gap-3">
-                {view !== 'reset' ? (
+              <div className={`border-t border-zinc-100 text-center flex flex-col gap-3 ${view === 'signup' ? 'mt-2 pt-2' : 'mt-5 pt-5'}`}>
+                {(view === 'login' || view === 'signup') && (
                   <button
                     disabled={isLoading}
                     onClick={() => {
                       setError(null);
                       setSuccess(null);
                       setViewState(view === 'login' ? 'signup' : 'login');
+                      setIsEmployeeLogin(false);
+                      setHasAttemptedSubmit(false);
                     }}
                     className="text-sm text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
                   >
@@ -659,22 +939,28 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                       </span>
                     )}
                   </button>
-                ) : null}
+                )}
 
                 {view === 'forgot' && (
                   <button
                     disabled={isLoading}
                     onClick={() => { setViewState('login'); setError(null); setSuccess(null); }}
-                    className="text-xs font-semibold text-zinc-400 hover:text-[#098043] transition-colors cursor-pointer disabled:opacity-50"
+                    className="text-sm text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    Voltar para o Login
+                    <span>
+                      <strong className="text-[#098043] font-bold">Voltar para Login</strong>
+                    </span>
                   </button>
                 )}
               </div>
             )}
-          </motion.div>
+          
+            </div>
+
+            <p className="copyright">© {new Date().getFullYear()} Servio — Todos os direitos reservados.</p>
+          </section>
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

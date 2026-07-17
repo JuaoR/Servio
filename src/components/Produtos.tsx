@@ -82,17 +82,17 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
   return (
     <div className="space-y-4">
       {/* Search & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#161B22] border border-[#30363D] p-4 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <div className="flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative w-full sm:w-56">
-            <Search className="absolute left-3.5 top-2.5 text-[#8B949E]" size={15} />
+            <Search className="absolute left-3.5 top-2.5 text-[var(--text-muted)]" size={15} />
             <input
               type="text"
               placeholder="Buscar produto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[#E6EDF3] placeholder-[#484F58] outline-none focus:border-amber-500"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
           <select
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}
-            className="bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#E6EDF3] outline-none focus:border-amber-500"
+            className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
           >
             <option value="all">Todas as Categorias</option>
             {categories.map(c => (
@@ -121,16 +121,16 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
       </div>
 
       {/* Products Table Card */}
-      <div className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-[#30363D]">
-                <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Produto</th>
-                <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Categoria</th>
-                <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Preço</th>
-                <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Status</th>
-                <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Ações</th>
+              <tr className="border-b border-[var(--border-color)]">
+                <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Produto</th>
+                <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Categoria</th>
+                <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Preço</th>
+                <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
+                <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -145,8 +145,8 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                 filtered.map(p => {
                   const catInfo = getCategory(p.cid);
                   return (
-                    <tr key={p.id} className="border-b border-[#21262D]/50 hover:bg-[#21262D]/25 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-white">{p.name}</td>
+                    <tr key={p.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/25 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-[var(--text-main)]">{p.name}</td>
                       <td className="py-3 px-4">
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full border"
@@ -178,7 +178,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                         <div className="inline-flex gap-1">
                           <button
                             onClick={() => handleOpenEdit(p)}
-                            className="p-1.5 rounded-md hover:bg-[#30363D] text-[#8B949E] hover:text-white transition-colors cursor-pointer"
+                            className="p-1.5 rounded-md hover:bg-[#30363D] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
                             title="Editar"
                           >
                             <Edit2 size={14} />
@@ -207,15 +207,15 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-sm bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden shadow-2xl"
+            className="w-full max-w-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl"
           >
-            <div className="p-4 border-b border-[#30363D] flex justify-between items-center">
-              <h3 className="font-bold text-white text-base">
+            <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+              <h3 className="font-bold text-[var(--text-main)] text-base">
                 {editingId ? 'Editar Produto' : 'Novo Produto'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#8B949E] hover:text-white cursor-pointer"
+                className="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
               >
                 ✕
               </button>
@@ -223,7 +223,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                   Nome do Produto *
                 </label>
                 <input
@@ -232,19 +232,19 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Picanha Grelhada"
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3.5 py-2 text-sm text-[#E6EDF3] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                   Categoria *
                 </label>
                 <select
                   required
                   value={cid}
                   onChange={(e) => setCid(e.target.value)}
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3.5 py-2 text-sm text-[#E6EDF3] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>
@@ -256,7 +256,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                     Preço (R$) *
                   </label>
                   <input
@@ -267,18 +267,18 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0,00"
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3.5 py-2 text-sm text-[#E6EDF3] outline-none focus:border-amber-500"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                     Status
                   </label>
                   <select
                     value={avail ? '1' : '0'}
                     onChange={(e) => setAvail(e.target.value === '1')}
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3.5 py-2 text-sm text-[#E6EDF3] outline-none focus:border-amber-500"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
                   >
                     <option value="1">Disponível</option>
                     <option value="0">Indisponível</option>
@@ -286,11 +286,11 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-[#30363D]">
+              <div className="flex justify-end gap-2 pt-4 border-t border-[var(--border-color)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-[#21262D] border border-[#30363D] text-[#E6EDF3] hover:bg-[#30363D] text-xs font-bold rounded-lg cursor-pointer"
+                  className="px-4 py-2 bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[#30363D] text-xs font-bold rounded-lg cursor-pointer"
                 >
                   Cancelar
                 </button>

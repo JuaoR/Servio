@@ -12,6 +12,17 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ comandas, history, rname, onNavigate, onOpenComanda }: DashboardProps) {
+
+  const [isDark, setIsDark] = React.useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
+
+  const toggleTheme = () => {
+    const isDarkNow = document.documentElement.classList.toggle('dark');
+    setIsDark(isDarkNow);
+    localStorage.setItem('servio_theme', isDarkNow ? 'dark' : 'light');
+  };
+
   const abertas = Object.values(comandas).filter(c => c.status === 'aberta');
   
   const todayStr = new Date().toDateString();
@@ -55,9 +66,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
   };
 
   const PAYMENT_LABELS: Record<string, { ic: string; lb: string; color: string }> = {
-    dinheiro: { ic: '💵', lb: 'Dinheiro', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+    dinheiro: { ic: '💵', lb: 'Dinheiro', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
     credito: { ic: '💳', lb: 'Crédito', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    debito: { ic: '🏧', lb: 'Débito', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+    debito: { ic: '🏧', lb: 'Débito', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
     pix: { ic: '⚡', lb: 'Pix', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' }
   };
 
@@ -66,10 +77,10 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
       {/* Greeting and Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            {getGreeting()}, {rname || 'Visitante'}! 👋
+          <h1 className="text-2xl font-black text-[var(--text-main)] tracking-tight">
+            {getGreeting()}, {rname || 'Visitante'}!
           </h1>
-          <p className="text-[#8B949E] text-xs flex items-center gap-2 mt-1">
+          <p className="text-[var(--text-muted)] text-xs flex items-center gap-2 mt-1">
             <Calendar size={13} />
             <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </p>
@@ -89,54 +100,54 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-emerald-500"
+          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Comandas Abertas</p>
-              <h3 className="text-3xl font-black text-emerald-400 mt-2">{abertas.length}</h3>
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Comandas Abertas</p>
+              <h3 className="text-3xl font-black text-blue-400 mt-2">{abertas.length}</h3>
             </div>
-            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
               <ClipboardList size={20} />
             </div>
           </div>
-          <p className="text-xs text-[#8B949E] mt-3">De 100 mesas/comandas disponíveis</p>
+          <p className="text-xs text-[var(--text-muted)] mt-3">De 100 mesas/comandas disponíveis</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-blue-500"
+          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Faturamento Hoje</p>
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Faturamento Hoje</p>
               <h3 className="text-3xl font-black text-[#E8A200] mt-2">{formatCurrency(faturamentoHoje)}</h3>
             </div>
             <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
               <Landmark size={20} />
             </div>
           </div>
-          <p className="text-xs text-[#8B949E] mt-3">{todayHistory.length} comanda(s) fechada(s)</p>
+          <p className="text-xs text-[var(--text-muted)] mt-3">{todayHistory.length} comanda(s) fechada(s)</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-purple-500"
+          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Ticket Médio</p>
-              <h3 className="text-3xl font-black text-purple-400 mt-2">{formatCurrency(ticketMedio)}</h3>
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Ticket Médio</p>
+              <h3 className="text-3xl font-black text-blue-400 mt-2">{formatCurrency(ticketMedio)}</h3>
             </div>
-            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
               <Scale size={20} />
             </div>
           </div>
-          <p className="text-xs text-[#8B949E] mt-3 truncate">
+          <p className="text-xs text-[var(--text-muted)] mt-3 truncate">
             {topItem ? `Top venda: ${topItem[0]}` : 'Sem vendas hoje ainda'}
           </p>
         </motion.div>
@@ -145,10 +156,10 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Comandas */}
-        <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 flex flex-col h-[400px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col h-[400px]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
               <span>Comandas em Aberto ({abertas.length})</span>
             </h2>
             <button
@@ -182,20 +193,20 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
                         key={c.id}
                         whileHover={{ scale: 1.02 }}
                         onClick={() => onOpenComanda(c.id)}
-                        className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500`}
+                        className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all bg-blue-500/10 border-blue-500/30 hover:border-blue-500`}
                       >
-                        <span className={`text-xl font-black block text-emerald-400`}>
+                        <span className={`text-xl font-black block text-blue-400`}>
                           #{c.id}
                         </span>
-                        <span className="text-[11px] text-[#8B949E] font-medium block mt-1 truncate">
+                        <span className="text-[11px] text-[var(--text-muted)] font-medium block mt-1 truncate">
                           {c.mesa || `Comanda ${c.id}`}
                         </span>
                         <div className="flex items-center justify-center gap-1.5 mt-2">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-emerald-500/10 text-emerald-400`}>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-blue-500/10 text-blue-400`}>
                             {getElapsedStr(c.openedAt)}
                           </span>
                         </div>
-                        <span className="text-xs font-bold text-white block mt-2">
+                        <span className="text-xs font-bold text-[var(--text-main)] block mt-2">
                           {formatCurrency(cmdTotal(c))}
                         </span>
                       </motion.div>
@@ -207,9 +218,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 flex flex-col h-[400px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col h-[400px]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-white tracking-tight">Últimas Vendas Fechadas</h2>
+            <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight">Últimas Vendas Fechadas</h2>
             <button
               onClick={() => onNavigate('historico')}
               className="text-xs text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
@@ -229,20 +240,20 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="border-b border-[#30363D]">
-                      <th className="pb-2 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">ID</th>
-                      <th className="pb-2 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Mesa</th>
-                      <th className="pb-2 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Pagamento</th>
-                      <th className="pb-2 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Total</th>
+                    <tr className="border-b border-[var(--border-color)]">
+                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID</th>
+                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
+                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Pagamento</th>
+                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recentHistory.map(h => {
                       const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10' };
                       return (
-                        <tr key={h.id} className="border-b border-[#21262D]/50 hover:bg-[#21262D]/20 transition-colors">
-                          <td className="py-2.5 font-semibold text-white">#{h.cmdId}</td>
-                          <td className="py-2.5 text-[#8B949E] truncate max-w-[100px]">{h.mesa || '—'}</td>
+                        <tr key={h.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors">
+                          <td className="py-2.5 font-semibold text-[var(--text-main)]">#{h.cmdId}</td>
+                          <td className="py-2.5 text-[var(--text-muted)] truncate max-w-[100px]">{h.mesa || '—'}</td>
                           <td className="py-2.5">
                             <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${pay.color}`}>
                               <span>{pay.ic}</span>

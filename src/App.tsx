@@ -10,7 +10,7 @@ import Comandas from './components/Comandas';
 import Produtos from './components/Produtos';
 import Categorias from './components/Categorias';
 import Historico from './components/Historico';
-import Garcons from './components/Garcons';
+import Funcionarios from './components/Funcionarios';
 import ComandaModal from './components/ComandaModal';
 import PaymentModal from './components/PaymentModal';
 
@@ -43,34 +43,9 @@ const DEF_CATS: Categoria[] = [
   { id: 'c6', name: 'Drinks & Coquetéis', color: '#10B981', icon: 'Beer' },
 ];
 
-const DEF_PRODS: Produto[] = [
-  { id: 'p1', name: 'Refrigerante Lata', cid: 'c1', price: 6, avail: true },
-  { id: 'p2', name: 'Suco Natural 300ml', cid: 'c1', price: 9, avail: true },
-  { id: 'p3', name: 'Água Mineral 500ml', cid: 'c1', price: 4, avail: true },
-  { id: 'p4', name: 'Cerveja Long Neck', cid: 'c1', price: 12, avail: true },
-  { id: 'p5', name: 'Vinho Taça', cid: 'c1', price: 22, avail: true },
-  { id: 'p6', name: 'Bruschetta ao Alho', cid: 'c2', price: 22, avail: true },
-  { id: 'p7', name: 'Bolinho de Bacalhau (6un)', cid: 'c2', price: 28, avail: true },
-  { id: 'p8', name: 'Tábua de Frios', cid: 'c2', price: 45, avail: true },
-  { id: 'p9', name: 'Picanha Grelhada', cid: 'c3', price: 89, avail: true },
-  { id: 'p10', name: 'Frango à Parmegiana', cid: 'c3', price: 52, avail: true },
-  { id: 'p11', name: 'Massa Carbonara', cid: 'c3', price: 45, avail: true },
-  { id: 'p12', name: 'Risoto de Camarão', cid: 'c3', price: 68, avail: true },
-  { id: 'p13', name: 'Petit Gateau', cid: 'c4', price: 24, avail: true },
-  { id: 'p14', name: 'Pudim de Leite', cid: 'c4', price: 14, avail: true },
-  { id: 'p15', name: 'Porção Batata Frita', cid: 'c5', price: 32, avail: true },
-  { id: 'p16', name: 'Porção Calabresa', cid: 'c5', price: 38, avail: true },
-  { id: 'p17', name: 'Mojito', cid: 'c6', price: 28, avail: true },
-  { id: 'p18', name: 'Caipirinha', cid: 'c6', price: 24, avail: true },
-  { id: 'p19', name: 'Aperol Spritz', cid: 'c6', price: 32, avail: true },
-];
+const DEF_PRODS: Produto[] = [];
 
-const DEF_GARCONS: Garcom[] = [
-  { id: 'g1', name: 'Ricardo Mendes', code: '10', phone: '(11) 98765-4321', email: 'ricardo@servio.com', active: true, commissionRate: 10 },
-  { id: 'g2', name: 'Beatriz Oliveira', code: '12', phone: '(11) 91234-5678', email: 'beatriz@servio.com', active: true, commissionRate: 10 },
-  { id: 'g3', name: 'Gustavo Farias', code: '15', phone: '(11) 93456-7890', email: 'gustavo@servio.com', active: true, commissionRate: 12 },
-  { id: 'g4', name: 'Luciana Costa', code: '18', phone: '(11) 94567-8901', email: 'luciana@servio.com', active: true, commissionRate: 10 }
-];
+const DEF_GARCONS: Funcionario[] = [];
 
 
 function makeEmptyComandas(): Record<number, Comanda> {
@@ -136,7 +111,7 @@ export default function App() {
           comandas: cleanedComandas,
           history: parsed.history || [],
           rname: parsed.rname || 'Restaurante Exemplo',
-          garcons: parsed.garcons || DEF_GARCONS,
+          funcionarios: parsed.funcionarios || [],
         };
       }
     } catch (e) {
@@ -149,7 +124,7 @@ export default function App() {
       comandas: makeEmptyComandas(),
       history: [],
       rname: 'Servio Gourmet',
-      garcons: DEF_GARCONS,
+      funcionarios: [],
     };
   });
 
@@ -157,6 +132,17 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+
+  useEffect(() => {
+    // Modo escuro padrão se não houver preferência, mas o cliente pediu por padrão modo claro
+    const saved = localStorage.getItem('servio_theme');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   // Supabase Auth listener
   useEffect(() => {
@@ -368,7 +354,7 @@ export default function App() {
     }));
   };
 
-  // Garcons CRUD
+  // Funcionarios CRUD
   const handleCreateGarcom = (g: Omit<Garcom, 'id'>) => {
     const newGarcom: Garcom = {
       ...g,
@@ -376,21 +362,21 @@ export default function App() {
     };
     setState(prev => ({
       ...prev,
-      garcons: [...(prev.garcons || []), newGarcom]
+      funcionarios: [...(prev.funcionarios || []), newGarcom]
     }));
   };
 
   const handleUpdateGarcom = (id: string, updatedFields: Partial<Garcom>) => {
     setState(prev => ({
       ...prev,
-      garcons: (prev.garcons || []).map(g => g.id === id ? { ...g, ...updatedFields } : g)
+      funcionarios: (prev.funcionarios || []).map(g => g.id === id ? { ...g, ...updatedFields } : g)
     }));
   };
 
   const handleDeleteGarcom = (id: string) => {
     setState(prev => ({
       ...prev,
-      garcons: (prev.garcons || []).filter(g => g.id !== id)
+      funcionarios: (prev.funcionarios || []).filter(g => g.id !== id)
     }));
   };
 
@@ -403,7 +389,7 @@ export default function App() {
         comandas: makeEmptyComandas(),
         history: [],
         rname: 'Servio Gourmet',
-        garcons: DEF_GARCONS,
+        funcionarios: [],
       });
       setCurrentView('dashboard');
     }
@@ -484,14 +470,14 @@ export default function App() {
             history={state.history}
             categories={state.categories}
             products={state.products}
-            garcons={state.garcons || []}
+            funcionarios={state.funcionarios || []}
             onClearHistory={() => setState(prev => ({ ...prev, history: [] }))}
           />
         );
-      case 'garcons':
+      case 'funcionarios':
         return (
-          <Garcons
-            garcons={state.garcons || []}
+          <Funcionarios
+            funcionarios={state.funcionarios || []}
             history={state.history}
             onCreateGarcom={handleCreateGarcom}
             onUpdateGarcom={handleUpdateGarcom}
@@ -508,20 +494,20 @@ export default function App() {
     comandas: 'Gestão de Comandas',
     produtos: 'Cardápio / Produtos',
     categorias: 'Categorias de Consumo',
-    garcons: 'Equipe de Garçons',
+    funcionarios: 'Funcionários',
     historico: 'Relatórios & Histórico'
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1117] text-[#E6EDF3] flex flex-col overflow-hidden relative">
+    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-main)] flex flex-col overflow-hidden relative">
       {/* Dynamic Restaurant Chalkboard Background Texture */}
       <div 
-        className="absolute inset-0 bg-[url('/src/assets/images/restaurant_bg_1783447237820.jpg')] bg-cover bg-center bg-no-repeat opacity-[0.07] pointer-events-none mix-blend-overlay z-0"
+        className="absolute inset-0 bg-[url('/src/assets/images/restaurant_light_bg_1783448355942.jpg')] bg-cover bg-center bg-no-repeat opacity-[0.07] pointer-events-none mix-blend-overlay z-0"
       />
       <div className="h-2 w-full bg-[#0F172A] shrink-0 z-10" />
       <div className="flex-1 flex overflow-hidden z-10">
       {/* SIDEBAR - Desktop */}
-      <aside className="hidden md:flex w-56 bg-[#161B22] border-r border-[#30363D] flex-col justify-between shrink-0">
+      <aside className="hidden md:flex w-56 bg-[var(--bg-card)] border-r border-[var(--border-color)] flex-col justify-between shrink-0">
         <div>
           {/* Logo container */}
           <div className="p-5 border-b border-zinc-300 bg-zinc-200 flex items-center gap-3">
@@ -543,7 +529,7 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'dashboard'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <LayoutDashboard size={15} />
@@ -555,7 +541,7 @@ export default function App() {
               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'comandas'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -563,7 +549,7 @@ export default function App() {
                 <span>Comandas</span>
               </div>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                activeComandasCount > 0 ? 'bg-emerald-500 text-black' : 'bg-[#30363D] text-[#8B949E]'
+                activeComandasCount > 0 ? 'bg-emerald-500 text-black' : 'bg-[#30363D] text-[var(--text-muted)]'
               }`}>
                 {activeComandasCount}
               </span>
@@ -576,7 +562,7 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'produtos'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <UtensilsCrossed size={15} />
@@ -588,7 +574,7 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'categorias'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <Tags size={15} />
@@ -596,11 +582,11 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => setCurrentView('garcons')}
+              onClick={() => setCurrentView('funcionarios')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
-                currentView === 'garcons'
+                currentView === 'funcionarios'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <Users size={15} />
@@ -614,7 +600,7 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'historico'
                   ? 'bg-amber-500/10 text-amber-500 font-bold'
-                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <History size={15} />
@@ -624,21 +610,21 @@ export default function App() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-[#30363D] space-y-3 bg-[#11141a]">
+        <div className="p-4 border-t border-[var(--border-color)] space-y-3 bg-[var(--bg-panel)]">
           {/* Restaurant Name editing inline */}
-          <div className="flex items-center gap-1.5 p-2 bg-[#0D1117] border border-[#30363D] rounded-lg">
+          <div className="flex items-center gap-1.5 p-2 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg">
             <Store size={14} className="text-amber-500 shrink-0" />
             <input
               type="text"
               value={state.rname}
               onChange={(e) => setState(prev => ({ ...prev, rname: e.target.value }))}
               placeholder="Nome do restaurante..."
-              className="bg-transparent text-xs text-[#E6EDF3] font-medium outline-none border-none w-full placeholder-[#484F58] focus:ring-0"
+              className="bg-transparent text-xs text-[var(--text-main)] font-medium outline-none border-none w-full placeholder-[#484F58] focus:ring-0"
             />
           </div>
 
-          <div className="flex items-center justify-between text-xs text-[#8B949E]">
-            <span>v1.2 · Servio</span>
+          <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <span>v1.0 · Servio</span>
             <button
               onClick={handleLogout}
               className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1 cursor-pointer"
@@ -667,7 +653,7 @@ export default function App() {
               animate={{ translateX: 0 }}
               exit={{ translateX: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className="relative w-64 bg-[#161B22] border-r border-[#30363D] p-5 flex flex-col justify-between h-full z-10"
+              className="relative w-64 bg-[var(--bg-card)] border-r border-[var(--border-color)] p-5 flex flex-col justify-between h-full z-10"
             >
               <div>
                 <div className="flex justify-between items-center mb-6">
@@ -677,7 +663,7 @@ export default function App() {
                     </div>
                     <span className="text-lg font-black text-[#E8A200]">Servio</span>
                   </div>
-                  <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[#8B949E] hover:text-white cursor-pointer">
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">
                     <X size={20} />
                   </button>
                 </div>
@@ -686,7 +672,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('dashboard'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <LayoutDashboard size={15} />
@@ -696,7 +682,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('comandas'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'comandas' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'comandas' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -711,7 +697,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('produtos'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'produtos' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'produtos' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <UtensilsCrossed size={15} />
@@ -721,7 +707,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('categorias'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'categorias' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'categorias' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <Tags size={15} />
@@ -729,9 +715,9 @@ export default function App() {
                   </button>
 
                   <button
-                    onClick={() => { setCurrentView('garcons'); setMobileMenuOpen(false); }}
+                    onClick={() => { setCurrentView('funcionarios'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'garcons' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'funcionarios' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <Users size={15} />
@@ -741,7 +727,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('historico'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'historico' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[#8B949E]'
+                      currentView === 'historico' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <History size={15} />
@@ -750,18 +736,18 @@ export default function App() {
                 </nav>
               </div>
 
-              <div className="p-4 border-t border-[#30363D] space-y-3 bg-[#11141a] rounded-lg">
-                <div className="flex items-center gap-1.5 p-1.5 bg-[#0D1117] border border-[#30363D] rounded-md">
+              <div className="p-4 border-t border-[var(--border-color)] space-y-3 bg-[var(--bg-panel)] rounded-lg">
+                <div className="flex items-center gap-1.5 p-1.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-md">
                   <Store size={13} className="text-amber-500" />
                   <input
                     type="text"
                     value={state.rname}
                     onChange={(e) => setState(prev => ({ ...prev, rname: e.target.value }))}
-                    className="bg-transparent text-[11px] text-white outline-none border-none w-full"
+                    className="bg-transparent text-[11px] text-[var(--text-main)] outline-none border-none w-full"
                   />
                 </div>
-                <div className="flex justify-between items-center text-[11px] text-[#8B949E]">
-                  <span>v1.2 · Servio</span>
+                <div className="flex justify-between items-center text-[11px] text-[var(--text-muted)]">
+                  <span>v1.0 · Servio</span>
                   <button onClick={handleLogout} className="text-red-400 font-bold cursor-pointer">Sair</button>
                 </div>
               </div>
@@ -801,7 +787,7 @@ export default function App() {
         </main>
 
         <footer className="h-10 bg-[#080808] border-t border-zinc-900 flex items-center justify-center text-[9px] text-zinc-600 tracking-[0.25em] shrink-0">
-          SISTEMA OPERACIONAL SERVIO • CONECTADO AO NODE-BR-01
+          Sistema Servio • 🟢 Conectado • Sincronizado
         </footer>
       </div>
 

@@ -201,13 +201,13 @@ export default function Historico({ history, categories, products, onClearHistor
     <div className="space-y-6">
       
       {/* 1. TABS SELECTOR AT TOP */}
-      <div className="flex bg-[#161B22] border border-[#30363D] p-1 rounded-xl w-full sm:w-fit">
+      <div className="flex bg-[var(--bg-card)] border border-[var(--border-color)] p-1 rounded-xl w-full sm:w-fit">
         <button
           onClick={() => setActiveTab('geral')}
           className={`flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             activeTab === 'geral'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-[#8B949E] hover:text-[#E6EDF3]'
+              ? 'bg-emerald-600 text-[var(--text-main)] shadow-sm'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <TrendingUp size={14} />
@@ -217,8 +217,8 @@ export default function Historico({ history, categories, products, onClearHistor
           onClick={() => setActiveTab('garcons')}
           className={`flex-1 sm:flex-initial px-5 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             activeTab === 'garcons'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-[#8B949E] hover:text-[#E6EDF3]'
+              ? 'bg-emerald-600 text-[var(--text-main)] shadow-sm'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <Users size={14} />
@@ -231,22 +231,22 @@ export default function Historico({ history, categories, products, onClearHistor
         <div className="space-y-6">
           {/* Stats row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-amber-500">
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Faturamento (Filtrado)</p>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-amber-500">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Faturamento (Filtrado)</p>
               <h3 className="text-2xl font-black text-amber-500 mt-1">{formatCurrency(filteredRevenue)}</h3>
-              <p className="text-xs text-[#8B949E] mt-2">{recs.length} comanda(s) encontradas</p>
+              <p className="text-xs text-[var(--text-muted)] mt-2">{recs.length} comanda(s) encontradas</p>
             </div>
 
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-purple-500">
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Ticket Médio (Filtrado)</p>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-purple-500">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Ticket Médio (Filtrado)</p>
               <h3 className="text-2xl font-black text-purple-600 mt-1">{formatCurrency(filteredTicket)}</h3>
-              <p className="text-xs text-[#8B949E] mt-2">Valor médio por comanda</p>
+              <p className="text-xs text-[var(--text-muted)] mt-2">Valor médio por comanda</p>
             </div>
 
-            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 border-l-4 border-l-emerald-500">
-              <p className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Histórico Geral Acumulado</p>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-emerald-500">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Histórico Geral Acumulado</p>
               <h3 className="text-2xl font-black text-emerald-600 mt-1">{formatCurrency(overallRevenue)}</h3>
-              <p className="text-xs text-[#8B949E] mt-2">{history.length} comanda(s) no total geral</p>
+              <p className="text-xs text-[var(--text-muted)] mt-2">{history.length} comanda(s) no total geral</p>
             </div>
           </div>
 
@@ -254,38 +254,38 @@ export default function Historico({ history, categories, products, onClearHistor
             {/* Reports & Filters column */}
             <div className="lg:col-span-3 space-y-4">
               {/* Filters Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-[#161B22] border border-[#30363D] p-4 rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
                 <div className="flex flex-wrap gap-2.5">
                   {/* Date */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Data de Venda</span>
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Data de Venda</span>
                     <input
                       type="date"
                       value={filterDate}
                       onChange={(e) => setFilterDate(e.target.value)}
-                      className="bg-white border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] outline-none focus:border-amber-500 font-sans"
+                      className="bg-white border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] outline-none focus:border-amber-500 font-sans"
                     />
                   </div>
 
                   {/* Waiter */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Garçom</span>
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Garçom</span>
                     <input
                       type="text"
                       placeholder="Nome do garçom..."
                       value={filterWaiter}
                       onChange={(e) => setFilterWaiter(e.target.value)}
-                      className="bg-white border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] placeholder-zinc-400 outline-none focus:border-amber-500"
+                      className="bg-white border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] placeholder-zinc-400 outline-none focus:border-amber-500"
                     />
                   </div>
 
                   {/* Method */}
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Forma de Pagto</span>
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Forma de Pagto</span>
                     <select
                       value={filterMethod}
                       onChange={(e) => setFilterMethod(e.target.value)}
-                      className="bg-white border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] outline-none focus:border-amber-500"
+                      className="bg-white border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[#2D251E] outline-none focus:border-amber-500"
                     >
                       <option value="all">Todos os Pagamentos</option>
                       {Object.entries(PAYMENT_LABELS).map(([k, v]) => (
@@ -305,7 +305,7 @@ export default function Historico({ history, categories, products, onClearHistor
                         setFilterWaiter('');
                         setFilterMethod('all');
                       }}
-                      className="px-3 py-1.5 text-xs bg-zinc-200 hover:bg-zinc-300 text-zinc-700 rounded-lg border border-[#30363D] transition-colors cursor-pointer"
+                      className="px-3 py-1.5 text-xs bg-zinc-200 hover:bg-zinc-300 text-zinc-700 rounded-lg border border-[var(--border-color)] transition-colors cursor-pointer"
                     >
                       ✕ Limpar
                     </button>
@@ -321,21 +321,21 @@ export default function Historico({ history, categories, products, onClearHistor
               </div>
 
               {/* Bar Chart section */}
-              <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5">
                 <h3 className="text-sm font-bold text-[#2D251E] mb-4 flex items-center gap-2">
                   <TrendingUp size={16} className="text-amber-500" />
                   <span>Desempenho de Vendas - Últimos 7 dias</span>
                 </h3>
 
                 {/* Custom pure React dynamic Chart representation */}
-                <div className="h-44 flex items-end gap-3 sm:gap-6 pt-6 px-2 border-b border-[#30363D]">
+                <div className="h-44 flex items-end gap-3 sm:gap-6 pt-6 px-2 border-b border-[var(--border-color)]">
                   {chartDays.map((d, i) => {
                     const percent = (d.value / maxChartVal) * 100;
                     return (
                       <div key={i} className="flex-1 flex flex-col items-center h-full group relative">
                         {/* Val popup */}
                         {d.value > 0 && (
-                          <div className="absolute top-[-24px] opacity-0 group-hover:opacity-100 transition-opacity bg-[#2D251E] border border-[#30363D] px-2 py-0.5 rounded text-[10px] text-white font-bold whitespace-nowrap z-10 shadow-lg">
+                          <div className="absolute top-[-24px] opacity-0 group-hover:opacity-100 transition-opacity bg-[#2D251E] border border-[var(--border-color)] px-2 py-0.5 rounded text-[10px] text-[var(--text-main)] font-bold whitespace-nowrap z-10 shadow-lg">
                             R$ {d.value.toFixed(0)}
                           </div>
                         )}
@@ -354,7 +354,7 @@ export default function Historico({ history, categories, products, onClearHistor
                         </div>
 
                         {/* Label */}
-                        <span className="text-[10px] text-[#8B949E] mt-2 block font-medium truncate max-w-full">
+                        <span className="text-[10px] text-[var(--text-muted)] mt-2 block font-medium truncate max-w-full">
                           {d.label}
                         </span>
                       </div>
@@ -364,19 +364,19 @@ export default function Historico({ history, categories, products, onClearHistor
               </div>
 
               {/* Table history */}
-              <div className="bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden">
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm border-collapse">
                     <thead>
-                      <tr className="border-b border-[#30363D] bg-[#FAF7F2]">
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">ID</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Mesa</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Garçom</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Consumo</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Pagto</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Desconto</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Total</th>
-                        <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Ações</th>
+                      <tr className="border-b border-[var(--border-color)] bg-[#FAF7F2]">
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Garçom</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Consumo</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Pagto</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Desconto</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Total</th>
+                        <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -398,7 +398,7 @@ export default function Historico({ history, categories, products, onClearHistor
                               <td className="py-3 px-4 text-zinc-700 font-medium">{h.garcom || '—'}</td>
                               <td className="py-3 px-4 text-zinc-600 text-xs">{totalItems} item(s)</td>
                               <td className="py-3 px-4">
-                                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-white border border-[#30363D] text-[#8B949E]">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-white border border-[var(--border-color)] text-[var(--text-muted)]">
                                   <span>{pay.ic}</span>
                                   <span>{pay.lb}</span>
                                 </span>
@@ -410,7 +410,7 @@ export default function Historico({ history, categories, products, onClearHistor
                               <td className="py-3 px-4 text-right">
                                 <button
                                   onClick={() => setSelectedReceipt(h)}
-                                  className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-[#2D251E] rounded-md border border-[#30363D] transition-all cursor-pointer inline-flex items-center gap-1"
+                                  className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-xs font-bold text-[#2D251E] rounded-md border border-[var(--border-color)] transition-all cursor-pointer inline-flex items-center gap-1"
                                 >
                                   <Eye size={12} />
                                   <span>Ver</span>
@@ -429,8 +429,8 @@ export default function Historico({ history, categories, products, onClearHistor
             {/* Right side panels */}
             <div className="space-y-4">
               {/* Top products */}
-              <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4">
-                <h4 className="text-xs font-bold text-[#2D251E] mb-3 flex items-center gap-2 pb-2 border-b border-[#30363D]">
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4">
+                <h4 className="text-xs font-bold text-[#2D251E] mb-3 flex items-center gap-2 pb-2 border-b border-[var(--border-color)]">
                   <Award size={14} className="text-amber-500" />
                   <span>🏆 Top 5 Produtos (Vendas)</span>
                 </h4>
@@ -451,8 +451,8 @@ export default function Historico({ history, categories, products, onClearHistor
               </div>
 
               {/* Payment break-down */}
-              <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4">
-                <h4 className="text-xs font-bold text-[#2D251E] mb-3 flex items-center gap-2 pb-2 border-b border-[#30363D]">
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4">
+                <h4 className="text-xs font-bold text-[#2D251E] mb-3 flex items-center gap-2 pb-2 border-b border-[var(--border-color)]">
                   <CreditCard size={14} className="text-blue-500" />
                   <span>💳 Por Pagamento</span>
                 </h4>
@@ -476,18 +476,18 @@ export default function Historico({ history, categories, products, onClearHistor
               </div>
 
               {/* Action box */}
-              <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 space-y-2">
-                <h4 className="text-xs font-bold text-[#8B949E] mb-2 uppercase tracking-wider">Ações Administrativas</h4>
+              <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 space-y-2">
+                <h4 className="text-xs font-bold text-[var(--text-muted)] mb-2 uppercase tracking-wider">Ações Administrativas</h4>
                 <button
                   onClick={handleExportCSV}
-                  className="w-full py-2 bg-zinc-100 border border-[#30363D] text-[#2D251E] hover:bg-zinc-200 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-zinc-100 border border-[var(--border-color)] text-[#2D251E] hover:bg-zinc-200 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Download size={13} />
                   <span>Exportar Backup CSV</span>
                 </button>
                 <button
                   onClick={handleClearHistory}
-                  className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-[var(--text-main)] text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Trash2 size={13} />
                   <span>Limpar Histórico</span>
@@ -504,36 +504,36 @@ export default function Historico({ history, categories, products, onClearHistor
           
           {/* Quick Metrics of the Waitstaff */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5 border-l-4 border-l-amber-500">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 border-l-4 border-l-amber-500">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Faturamento Total do Staff</span>
               <h3 className="text-2xl font-black text-[#2D251E] mt-1">{formatCurrency(overallRevenue)}</h3>
-              <p className="text-[11px] text-[#8B949E] mt-1.5">Acumulado de todas as comadas</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1.5">Acumulado de todas as comadas</p>
             </div>
 
-            <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5 border-l-4 border-l-emerald-500">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 border-l-4 border-l-emerald-500">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Total de Comissões Devidas</span>
               <h3 className="text-2xl font-black text-emerald-600 mt-1">{formatCurrency(totalStaffCommissions)}</h3>
-              <p className="text-[11px] text-[#8B949E] mt-1.5">Calculado sobre a taxa de cada um</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1.5">Calculado sobre a taxa de cada um</p>
             </div>
 
-            <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5 border-l-4 border-l-purple-500">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 border-l-4 border-l-purple-500">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Média de Comissão</span>
               <h3 className="text-2xl font-black text-purple-600 mt-1">
                 {formatCurrency(waiterAnalytics.length > 0 ? totalStaffCommissions / waiterAnalytics.length : 0)}
               </h3>
-              <p className="text-[11px] text-[#8B949E] mt-1.5">Média por garçom ativo</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1.5">Média por garçom ativo</p>
             </div>
 
             {/* Best Waiter Feature Card */}
-            <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5 border-l-4 border-l-blue-500 relative overflow-hidden">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 border-l-4 border-l-blue-500 relative overflow-hidden">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Destaque do Período 🏆</span>
               {bestWaiter ? (
                 <>
                   <h3 className="text-lg font-black text-[#2D251E] mt-1 truncate">{bestWaiter.name}</h3>
-                  <p className="text-[11px] text-[#8B949E] mt-0.5">Vendeu <strong className="text-amber-500">{formatCurrency(bestWaiter.totalSales)}</strong></p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Vendeu <strong className="text-amber-500">{formatCurrency(bestWaiter.totalSales)}</strong></p>
                 </>
               ) : (
-                <p className="text-xs text-[#8B949E] mt-2">Nenhum lançamento registrado</p>
+                <p className="text-xs text-[var(--text-muted)] mt-2">Nenhum lançamento registrado</p>
               )}
               <Trophy size={45} className="absolute right-2 bottom-1 text-amber-500/10 shrink-0" />
             </div>
@@ -542,8 +542,8 @@ export default function Historico({ history, categories, products, onClearHistor
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Leaderboard panel / Rankings list */}
-            <div className="lg:col-span-2 bg-[#161B22] border border-[#30363D] rounded-2xl p-5 space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b border-[#30363D]">
+            <div className="lg:col-span-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 space-y-4">
+              <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)]">
                 <div>
                   <h3 className="text-sm font-bold text-[#2D251E] flex items-center gap-1.5">
                     <Trophy className="text-amber-500" size={16} />
@@ -555,7 +555,7 @@ export default function Historico({ history, categories, products, onClearHistor
               </div>
 
               {waiterAnalytics.length === 0 ? (
-                <p className="text-xs text-center py-12 text-[#8B949E]">Nenhum lançamento no histórico associado a garçons.</p>
+                <p className="text-xs text-center py-12 text-[var(--text-muted)]">Nenhum lançamento no histórico associado a garçons.</p>
               ) : (
                 <div className="space-y-4 pt-2">
                   {waiterAnalytics.map((w, index) => {
@@ -566,17 +566,17 @@ export default function Historico({ history, categories, products, onClearHistor
                           <div className="flex items-center gap-2">
                             {/* Medal badge style */}
                             <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                              index === 0 ? 'bg-amber-500 text-white' : index === 1 ? 'bg-zinc-300 text-zinc-800' : index === 2 ? 'bg-amber-700 text-white' : 'bg-zinc-100 text-zinc-500'
+                              index === 0 ? 'bg-amber-500 text-[var(--text-main)]' : index === 1 ? 'bg-zinc-300 text-zinc-800' : index === 2 ? 'bg-amber-700 text-[var(--text-main)]' : 'bg-zinc-100 text-zinc-500'
                             }`}>
                               {index + 1}
                             </span>
                             <span className="font-bold text-[#2D251E]">{w.name}</span>
-                            <span className="text-[9px] text-[#8B949E] font-mono">({w.orderCount} mesas)</span>
+                            <span className="text-[9px] text-[var(--text-muted)] font-mono">({w.orderCount} mesas)</span>
                           </div>
                           
                           <div className="text-right">
                             <span className="font-black text-[#2D251E] font-mono">{formatCurrency(w.totalSales)}</span>
-                            <span className="text-[10px] font-semibold text-emerald-600 block">Comissão: {formatCurrency(w.commissionEarned)} <span className="text-[9px] text-[#8B949E] font-normal">({w.commissionRate}%)</span></span>
+                            
                           </div>
                         </div>
 
@@ -602,9 +602,9 @@ export default function Historico({ history, categories, products, onClearHistor
             </div>
 
             {/* Individual ledger report filter card */}
-            <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-5 flex flex-col justify-between h-full">
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 flex flex-col justify-between h-full">
               <div>
-                <h4 className="text-xs font-bold text-[#2D251E] pb-2 border-b border-[#30363D] uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-[#2D251E] pb-2 border-b border-[var(--border-color)] uppercase tracking-wider flex items-center gap-1.5">
                   <Receipt size={14} className="text-amber-500" />
                   <span>Filtro de Extrato Individual</span>
                 </h4>
@@ -615,7 +615,7 @@ export default function Historico({ history, categories, products, onClearHistor
                     <select
                       value={selectedWaiterDetail}
                       onChange={(e) => setSelectedWaiterDetail(e.target.value)}
-                      className="w-full p-2 bg-white border border-[#30363D] rounded-xl text-xs text-[#2D251E]"
+                      className="w-full p-2 bg-white border border-[var(--border-color)] rounded-xl text-xs text-[#2D251E]"
                     >
                       <option value="all">-- Todos os Garçons --</option>
                       {allWaiterNames.map(name => (
@@ -656,7 +656,7 @@ export default function Historico({ history, categories, products, onClearHistor
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#30363D] mt-6">
+              <div className="pt-4 border-t border-[var(--border-color)] mt-6">
                 <p className="text-[10px] text-zinc-500 leading-relaxed italic text-center">
                   Utilize o extrato individual para emitir relatórios de fechamento de caixa e pagamentos de comissão.
                 </p>
@@ -666,8 +666,8 @@ export default function Historico({ history, categories, products, onClearHistor
           </div>
 
           {/* Detailed Waiter Transaction Ledger */}
-          <div className="bg-[#161B22] border border-[#30363D] rounded-2xl overflow-hidden p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pb-3 border-b border-[#30363D]">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl overflow-hidden p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pb-3 border-b border-[var(--border-color)]">
               <div>
                 <h3 className="text-sm font-bold text-[#2D251E] flex items-center gap-1.5">
                   <UserCheck className="text-emerald-500" size={16} />
@@ -685,15 +685,15 @@ export default function Historico({ history, categories, products, onClearHistor
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#30363D] bg-[#FAF7F2]">
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Fechamento</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Mesa</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Garçom</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Método</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Faturamento</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-center">Taxa</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Comissão</th>
-                    <th className="py-3 px-4 text-[10px] font-bold text-[#8B949E] uppercase tracking-wider text-right">Ações</th>
+                  <tr className="border-b border-[var(--border-color)] bg-[#FAF7F2]">
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Fechamento</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Garçom</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Método</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Faturamento</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Taxa</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Comissão</th>
+                    <th className="py-3 px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -720,7 +720,7 @@ export default function Historico({ history, categories, products, onClearHistor
                           </td>
                           <td className="py-3 px-4 font-bold text-[#2D251E]">Mesa / Comanda #{h.cmdId} {h.mesa ? `(${h.mesa})` : ''}</td>
                           <td className="py-3 px-4 text-[#2D251E] font-medium">{h.garcom || '—'}</td>
-                          <td className="py-3 px-4 text-[#8B949E]">
+                          <td className="py-3 px-4 text-[var(--text-muted)]">
                             {pay.ic} {pay.lb}
                           </td>
                           <td className="py-3 px-4 text-right font-bold text-zinc-800">{formatCurrency(h.total)}</td>
@@ -729,7 +729,7 @@ export default function Historico({ history, categories, products, onClearHistor
                           <td className="py-3 px-4 text-right">
                             <button
                               onClick={() => setSelectedReceipt(h)}
-                              className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 border border-[#30363D] text-[10px] font-bold text-[#2D251E] rounded-md transition-all cursor-pointer"
+                              className="px-2 py-0.5 bg-zinc-100 hover:bg-zinc-200 border border-[var(--border-color)] text-[10px] font-bold text-[#2D251E] rounded-md transition-all cursor-pointer"
                             >
                               Detalhar
                             </button>
@@ -752,9 +752,9 @@ export default function Historico({ history, categories, products, onClearHistor
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-sm bg-white border border-[#30363D] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+            className="w-full max-w-sm bg-white border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
           >
-            <div className="p-4 border-b border-[#30363D] flex justify-between items-center bg-[#FAF7F2]">
+            <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[#FAF7F2]">
               <div>
                 <h3 className="font-bold text-[#2D251E] text-sm">Detalhamento Comanda #{selectedReceipt.cmdId}</h3>
                 <span className="text-[10px] text-zinc-500 font-mono">
@@ -809,7 +809,7 @@ export default function Historico({ history, categories, products, onClearHistor
                 ))}
               </div>
 
-              <div className="pt-2 border-t border-[#30363D] text-xs space-y-1.5 font-sans">
+              <div className="pt-2 border-t border-[var(--border-color)] text-xs space-y-1.5 font-sans">
                 <div className="flex justify-between text-zinc-500">
                   <span>Subtotal</span>
                   <span>R$ {selectedReceipt.subtotal.toFixed(2)}</span>
@@ -820,17 +820,17 @@ export default function Historico({ history, categories, products, onClearHistor
                     <span>-R$ {selectedReceipt.discount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-base font-extrabold text-amber-500 pt-2 border-t border-[#30363D] mt-1.5">
+                <div className="flex justify-between text-base font-extrabold text-amber-500 pt-2 border-t border-[var(--border-color)] mt-1.5">
                   <span>Total Pago</span>
                   <span>{formatCurrency(selectedReceipt.total)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#30363D] bg-[#FAF7F2] flex justify-end">
+            <div className="p-4 border-t border-[var(--border-color)] bg-[#FAF7F2] flex justify-end">
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="px-4 py-2 bg-[#2D251E] hover:bg-black text-white text-xs font-bold rounded-lg cursor-pointer"
+                className="px-4 py-2 bg-[#2D251E] hover:bg-black text-[var(--text-main)] text-xs font-bold rounded-lg cursor-pointer"
               >
                 Fechar
               </button>

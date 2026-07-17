@@ -52,17 +52,17 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
   return (
     <div className="space-y-4">
       {/* Search and Filters Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#161B22] border border-[#30363D] p-4 rounded-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <div className="flex flex-wrap items-center gap-2">
           {/* Search bar */}
           <div className="relative w-full sm:w-60">
-            <Search className="absolute left-3.5 top-2.5 text-[#8B949E]" size={15} />
+            <Search className="absolute left-3.5 top-2.5 text-[var(--text-muted)]" size={15} />
             <input
               type="text"
               placeholder="Nº, mesa ou garçom..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[#E6EDF3] placeholder-[#484F58] outline-none focus:border-amber-500"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
             />
           </div>
 
@@ -73,7 +73,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                 filter === 'all'
                   ? 'bg-amber-500 border-amber-500 text-[#090D14]'
-                  : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               Todas ({counts.all})
@@ -82,8 +82,8 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               onClick={() => setFilter('livre')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                 filter === 'livre'
-                  ? 'bg-gray-500 border-gray-500 text-white'
-                  : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  ? 'bg-gray-500 border-gray-500 text-[var(--text-main)]'
+                  : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               ⚪ Livres ({counts.livre})
@@ -93,7 +93,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                 filter === 'aberta'
                   ? 'bg-emerald-500 border-emerald-500 text-[#090D14]'
-                  : 'bg-[#161B22] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21262D]'
+                  : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               🟢 Abertas ({counts.aberta})
@@ -102,7 +102,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
         </div>
 
         {/* Legend */}
-        <div className="flex gap-4 text-[11px] text-[#8B949E] font-medium items-center self-end md:self-auto">
+        <div className="flex gap-4 text-[11px] text-[var(--text-muted)] font-medium items-center self-end md:self-auto">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#30363D]"></span>
             <span>Livre</span>
@@ -116,7 +116,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
 
       {/* Comandas Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-12 text-center text-[#484F58]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-12 text-center text-[#484F58]">
           <Grid size={36} className="mx-auto mb-2" />
           <p className="text-sm">Nenhuma comanda encontrada com os filtros atuais.</p>
         </div>
@@ -127,7 +127,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
             const totalItems = c.items.reduce((sum, item) => sum + item.qty, 0);
             const totalVal = open ? cmdTotal(c) : 0;
 
-            let cardStyles = 'bg-[#161B22] border-[#21262D] text-[#484F58] hover:border-[#8B949E]/40 hover:text-[#8B949E]';
+            let cardStyles = 'bg-[var(--bg-card)] border-[var(--bg-hover)] text-[#484F58] hover:border-[#8B949E]/40 hover:text-[var(--text-muted)]';
             if (open) {
               cardStyles = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/5';
             }
@@ -159,7 +159,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
                       {getElapsedStr(c.openedAt)}
                     </span>
                     {totalVal > 0 && (
-                      <span className="text-[10px] font-bold text-white mt-1.5">
+                      <span className="text-[10px] font-bold text-[var(--text-main)] mt-1.5">
                         R${totalVal.toFixed(0)}
                       </span>
                     )}

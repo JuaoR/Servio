@@ -209,19 +209,19 @@ export default function ComandaModal({
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl h-[90vh] bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-4xl h-[90vh] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 border-b border-[#30363D] flex justify-between items-center bg-[#1c2128]">
+        <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[#1c2128]">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-amber-500">#{id}</span>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-              open ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-[#8B949E] bg-[#21262D]'
+              open ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-[var(--text-muted)] bg-[var(--bg-hover)]'
             }`}>
               {open ? '● Aberta' : '○ Livre'}
             </span>
             {open && comanda.openedAt && (
-              <span className="text-xs text-[#8B949E] hidden sm:inline">
+              <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
                 Abertura: {new Date(comanda.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
@@ -238,7 +238,7 @@ export default function ComandaModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[#30363D] text-[#8B949E] hover:text-white transition-colors cursor-pointer"
+            className="p-1 rounded-lg hover:bg-[#30363D] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -247,11 +247,11 @@ export default function ComandaModal({
         {/* Content columns */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Left panel: Info & Items list */}
-          <div className="flex-1 overflow-y-auto p-4 border-b md:border-b-0 md:border-r border-[#30363D] space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 border-b md:border-b-0 md:border-r border-[var(--border-color)] space-y-4">
             {/* Meta Inputs */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
                   <Users size={12} />
                   <span>Mesa / Cliente</span>
                 </label>
@@ -260,12 +260,12 @@ export default function ComandaModal({
                   value={mesa}
                   onChange={(e) => handleMetaChange('mesa', e.target.value)}
                   placeholder="Ex: Mesa 5, João"
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#E6EDF3] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider mb-1 flex items-center gap-1">
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
                   <User size={12} />
                   <span>Garçom</span>
                 </label>
@@ -274,13 +274,13 @@ export default function ComandaModal({
                   value={garcom}
                   onChange={(e) => handleMetaChange('garcom', e.target.value)}
                   placeholder="Ex: Lucas"
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#E6EDF3] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider mb-1 flex items-center gap-1">
+              <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
                 <Clipboard size={12} />
                 <span>Observações Gerais</span>
               </label>
@@ -289,14 +289,14 @@ export default function ComandaModal({
                 value={obs}
                 onChange={(e) => handleMetaChange('obs', e.target.value)}
                 placeholder="Ex: Sem cebola nos pratos, gelo separado"
-                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-1.5 text-xs text-[#E6EDF3] outline-none focus:border-amber-500"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
               />
             </div>
 
             {/* Items display */}
             <div className="space-y-2">
-              <div className="flex justify-between items-center pb-2 border-b border-[#21262D]">
-                <h3 className="text-sm font-bold text-white">Itens do Pedido</h3>
+              <div className="flex justify-between items-center pb-2 border-b border-[var(--bg-hover)]">
+                <h3 className="text-sm font-bold text-[var(--text-main)]">Itens do Pedido</h3>
                 {open && comanda.items.length > 0 && (
                   <button
                     onClick={handleClearAll}
@@ -312,19 +312,19 @@ export default function ComandaModal({
                 <div className="py-12 text-center text-[#484F58]">
                   <BookOpen size={32} className="mx-auto mb-2 opacity-80" />
                   <p className="text-xs font-semibold">Comanda vazia.</p>
-                  <p className="text-[10px] text-[#8B949E] mt-1">Adicione produtos ao lado para iniciar o pedido.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">Adicione produtos ao lado para iniciar o pedido.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {comanda.items.map(item => (
                     <div
                       key={item.id}
-                      className="p-3 bg-[#0D1117] border border-[#21262D] rounded-xl flex items-start gap-3 hover:border-amber-500/30 transition-colors"
+                      className="p-3 bg-[var(--bg-base)] border border-[var(--bg-hover)] rounded-xl flex items-start gap-3 hover:border-amber-500/30 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-bold text-white block truncate">{item.name}</span>
-                        <span className="text-[10px] text-[#8B949E] block mt-0.5">
-                          R$ {item.price.toFixed(2)} × {item.qty} = <strong className="text-[#E6EDF3]">R$ {(item.price * item.qty).toFixed(2)}</strong>
+                        <span className="text-xs font-bold text-[var(--text-main)] block truncate">{item.name}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block mt-0.5">
+                          R$ {item.price.toFixed(2)} × {item.qty} = <strong className="text-[var(--text-main)]">R$ {(item.price * item.qty).toFixed(2)}</strong>
                         </span>
                         {item.note && (
                           <span className="inline-block text-[9px] text-amber-500 bg-amber-500/5 px-1.5 py-0.5 rounded border border-amber-500/10 mt-1">
@@ -339,7 +339,7 @@ export default function ComandaModal({
                               value={tempNote}
                               onChange={(e) => setTempNote(e.target.value)}
                               placeholder="Observação do item..."
-                              className="flex-1 bg-[#161B22] border border-[#30363D] rounded-md px-2 py-1 text-xs text-white outline-none focus:border-amber-500"
+                              className="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md px-2 py-1 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
                             />
                             <button
                               onClick={() => handleSaveNote(item.id)}
@@ -355,16 +355,16 @@ export default function ComandaModal({
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleQtyChange(item.id, -1)}
-                            className="w-5 h-5 rounded bg-[#21262D] hover:bg-amber-500 hover:text-black text-white flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-amber-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Minus size={11} />
                           </button>
-                          <span className="text-xs font-bold font-mono text-white min-w-[14px] text-center">
+                          <span className="text-xs font-bold font-mono text-[var(--text-main)] min-w-[14px] text-center">
                             {item.qty}
                           </span>
                           <button
                             onClick={() => handleQtyChange(item.id, 1)}
-                            className="w-5 h-5 rounded bg-[#21262D] hover:bg-amber-500 hover:text-black text-white flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-amber-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Plus size={11} />
                           </button>
@@ -372,7 +372,7 @@ export default function ComandaModal({
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => handleToggleNote(item)}
-                            className="text-[10px] text-[#8B949E] hover:text-white underline cursor-pointer"
+                            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline cursor-pointer"
                           >
                             Obs
                           </button>
@@ -392,9 +392,9 @@ export default function ComandaModal({
           </div>
 
           {/* Right panel: Product picker */}
-          <div className="w-full md:w-80 flex flex-col bg-[#11141a]">
-            <div className="p-3 border-b border-[#30363D] shrink-0">
-              <span className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider mb-2">
+          <div className="w-full md:w-80 flex flex-col bg-[var(--bg-panel)]">
+            <div className="p-3 border-b border-[var(--border-color)] shrink-0">
+              <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
                 Cardápio de Lançamento
               </span>
 
@@ -405,7 +405,7 @@ export default function ComandaModal({
                   className={`px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
                     pickerCat === 'all'
                       ? 'bg-amber-500 border-amber-500 text-black'
-                      : 'bg-[#21262D] border-[#30363D] text-[#8B949E] hover:text-white'
+                      : 'bg-[var(--bg-hover)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
                   Todos
@@ -416,8 +416,8 @@ export default function ComandaModal({
                     onClick={() => setPickerCat(c.id)}
                     className={`px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
                       pickerCat === c.id
-                        ? 'text-white'
-                        : 'bg-[#21262D] border-[#30363D] text-[#8B949E] hover:text-white'
+                        ? 'text-[var(--text-main)]'
+                        : 'bg-[var(--bg-hover)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                     }`}
                     style={pickerCat === c.id ? { backgroundColor: c.color, borderColor: c.color } : {}}
                   >
@@ -435,7 +435,7 @@ export default function ComandaModal({
                   placeholder="Buscar produto..."
                   value={pickerSearch}
                   onChange={(e) => setPickerSearch(e.target.value)}
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#E6EDF3] placeholder-[#484F58] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
                 />
               </div>
             </div>
@@ -453,10 +453,10 @@ export default function ComandaModal({
                     <div
                       key={p.id}
                       onClick={() => handleAddItem(p)}
-                      className="p-2.5 bg-[#161B22] border border-[#21262D] hover:border-amber-500/50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+                      className="p-2.5 bg-[var(--bg-card)] border border-[var(--bg-hover)] hover:border-amber-500/50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
                     >
                       <div className="min-w-0 pr-2">
-                        <span className="text-xs font-semibold text-[#E6EDF3] block truncate">{p.name}</span>
+                        <span className="text-xs font-semibold text-[var(--text-main)] block truncate">{p.name}</span>
                         {catInfo && (
                           <span
                             className="text-[9px] font-medium"
@@ -478,15 +478,15 @@ export default function ComandaModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[#30363D] bg-[#1c2128] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+        <div className="p-4 border-t border-[var(--border-color)] bg-[#1c2128] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-4">
             <div>
-              <span className="block text-[9px] font-bold text-[#8B949E] uppercase tracking-wider">Subtotal</span>
-              <span className="text-xs text-white">R$ {subTotal.toFixed(2)}</span>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Subtotal</span>
+              <span className="text-xs text-[var(--text-main)]">R$ {subTotal.toFixed(2)}</span>
             </div>
 
             <div>
-              <span className="block text-[9px] font-bold text-[#8B949E] uppercase tracking-wider">Desconto R$</span>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Desconto R$</span>
               <input
                 type="number"
                 min="0"
@@ -495,12 +495,12 @@ export default function ComandaModal({
                 value={discount || ''}
                 onChange={(e) => handleDiscountChange(e.target.value)}
                 placeholder="0.00"
-                className="w-16 bg-[#0D1117] border border-[#30363D] rounded px-1.5 py-0.5 text-xs text-white text-center outline-none focus:border-amber-500"
+                className="w-16 bg-[var(--bg-base)] border border-[var(--border-color)] rounded px-1.5 py-0.5 text-xs text-[var(--text-main)] text-center outline-none focus:border-amber-500"
               />
             </div>
 
             <div>
-              <span className="block text-[9px] font-bold text-[#8B949E] uppercase tracking-wider">Total</span>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Total</span>
               <span className="text-lg font-black text-amber-500">R$ {totalVal.toFixed(2)}</span>
             </div>
           </div>
@@ -517,7 +517,7 @@ export default function ComandaModal({
               <button
                 onClick={() => onShowPayment(id)}
                 disabled={comanda.items.length === 0}
-                className="flex-1 sm:flex-initial px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-initial px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-[var(--text-main)] text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <CheckSquare size={14} />
                 <span>Fechar &amp; Pagar</span>
@@ -550,7 +550,7 @@ export default function ComandaModal({
               <button
                 type="button"
                 onClick={confirmClearAll}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-[var(--text-main)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
               >
                 Sim
               </button>

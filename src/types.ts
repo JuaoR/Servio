@@ -108,15 +108,17 @@ export interface HistoricoItem {
   updated_at?: string;
 }
 
-export interface Garcom {
+export interface Funcionario {
   id: string;
   name: string;
-  code: string;
-  phone: string;
-  email: string;
-  active: boolean; // Active (front-end local)
+  username: string;
+  password: string;
+  whatsapp?: string;
+  phone?: string;
+  email?: string;
+  active?: boolean; // Active (front-end local)
   is_active?: boolean; // Mapped database is_active
-  commissionRate: number; // percentage, e.g. 10 for 10% (front-end local)
+  commissionRate?: number; // percentage, e.g. 10 for 10% (front-end local)
   commission_rate?: number; // Mapped database commission rate
   restaurant_id?: string;
   user_id?: string | null;

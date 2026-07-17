@@ -1,0 +1,351 @@
+TERMOS DE USO DO SERVIO
+
+Versão 1.0
+
+Última atualização: (preencher quando publicado)
+
+CAPÍTULO I
+APRESENTAÇÃO
+1. Objeto
+
+Os presentes Termos de Uso ("Termos") regulam o acesso, utilização e funcionamento da plataforma Servio, disponibilizada por seu desenvolvedor ("Servio", "Plataforma" ou "Sistema"), destinada ao gerenciamento operacional de restaurantes, bares, lanchonetes, cafeterias, pizzarias, food trucks e demais estabelecimentos do ramo alimentício.
+
+Ao criar uma conta, acessar ou utilizar qualquer funcionalidade disponibilizada pelo Servio, o Usuário declara que leu, compreendeu e concorda integralmente com estes Termos, comprometendo-se a respeitar todas as regras aqui estabelecidas.
+
+Caso o Usuário não concorde com qualquer disposição destes Termos, deverá interromper imediatamente a utilização da Plataforma.
+
+2. Finalidade da Plataforma
+
+O Servio consiste em uma plataforma digital de gestão operacional desenvolvida para auxiliar estabelecimentos comerciais na organização de seus processos internos.
+
+Entre as funcionalidades atualmente disponibilizadas ou que poderão ser disponibilizadas futuramente estão, exemplificativamente:
+
+gerenciamento de comandas;
+cadastro de restaurantes;
+cadastro de funcionários;
+gerenciamento de usuários;
+autenticação de contas;
+sincronização em tempo real das informações;
+gerenciamento operacional do estabelecimento;
+controle interno de pedidos;
+organização das atividades dos colaboradores;
+demais funcionalidades incorporadas pela Plataforma ao longo de sua evolução.
+
+O Servio constitui ferramenta de apoio administrativo e operacional, não substituindo obrigações legais, fiscais, contábeis, trabalhistas ou tributárias eventualmente aplicáveis ao estabelecimento.
+
+3. Abrangência
+
+Os presentes Termos aplicam-se a toda e qualquer utilização do Servio, incluindo:
+
+acesso pelo navegador;
+acesso por dispositivos móveis;
+utilização de futuras aplicações oficiais;
+APIs eventualmente disponibilizadas;
+integrações oficiais autorizadas;
+demais serviços relacionados ao ecossistema Servio.
+
+Sempre que houver conflito entre documentos específicos e estes Termos, prevalecerão as disposições específicas apenas naquilo que expressamente disciplinarem.
+
+4. Aceitação dos Termos
+
+A utilização do Servio pressupõe manifestação livre, informada e inequívoca de concordância com estes Termos.
+
+A aceitação poderá ocorrer mediante:
+
+criação de conta;
+realização de login;
+utilização da Plataforma;
+permanência utilizando os serviços após atualizações destes Termos.
+
+Caso o Usuário não concorde com qualquer disposição aqui prevista, não deverá utilizar o Sistema.
+
+5. Natureza da relação jurídica
+
+A utilização do Servio não estabelece qualquer vínculo empregatício, societário, associativo, trabalhista, representação comercial ou parceria entre o Servio e os Usuários.
+
+O Servio limita-se ao fornecimento de uma licença de uso da Plataforma, permanecendo toda responsabilidade operacional do estabelecimento sob responsabilidade exclusiva do respectivo restaurante.
+
+CAPÍTULO II
+DEFINIÇÕES
+
+Para fins destes Termos, os seguintes conceitos possuem os significados abaixo descritos.
+
+6. Plataforma
+
+Conjunto de sistemas, aplicações, banco de dados, infraestrutura, interfaces, páginas, serviços, funcionalidades e tecnologias disponibilizadas sob a marca Servio.
+
+7. Servio
+
+Denominação utilizada para identificar a Plataforma, seus serviços, seu software, sua identidade visual e todos os recursos disponibilizados aos Usuários.
+
+8. Restaurante
+
+Pessoa física ou jurídica responsável pela criação da conta principal na Plataforma, utilizando o Servio para gerenciamento operacional de seu estabelecimento.
+
+Para efeitos destes Termos, equiparam-se ao conceito de restaurante quaisquer estabelecimentos do ramo alimentício que utilizem a Plataforma.
+
+9. Usuário
+
+Toda pessoa que possua acesso autorizado ao Sistema, independentemente de seu nível de permissão.
+
+São considerados Usuários, por exemplo:
+
+proprietários;
+administradores;
+gerentes;
+funcionários;
+colaboradores autorizados.
+10. Administrador
+
+Usuário responsável pela administração geral da conta do restaurante.
+
+Possui poderes para, dentre outras ações:
+
+cadastrar funcionários;
+remover usuários;
+alterar permissões;
+gerenciar configurações;
+administrar informações do estabelecimento.
+11. Funcionário
+
+Usuário cadastrado por um restaurante para utilização da Plataforma conforme as permissões concedidas pelo Administrador.
+
+Os funcionários não possuem qualquer relação contratual com o Servio, mantendo vínculo exclusivamente com o estabelecimento responsável por seu cadastro.
+
+12. Conta
+
+Conjunto de informações utilizadas para identificação e autenticação de determinado Usuário na Plataforma.
+
+A Conta poderá conter, entre outras informações:
+
+nome;
+endereço de e-mail;
+senha;
+permissões;
+histórico de utilização;
+dados relacionados ao restaurante.
+13. Comanda
+
+Registro eletrônico utilizado para organização das operações realizadas pelo estabelecimento.
+
+O conteúdo das comandas é integralmente inserido pelos próprios Usuários, não sendo criado, validado ou alterado automaticamente pelo Servio.
+
+14. Dados
+
+Toda informação armazenada ou processada pela Plataforma em razão da utilização dos Serviços.
+
+Incluem-se, exemplificativamente:
+
+dados cadastrais;
+informações operacionais;
+registros de utilização;
+comandas;
+usuários;
+configurações;
+informações do restaurante.
+15. Serviços
+
+Conjunto de funcionalidades disponibilizadas pelo Servio aos Usuários, incluindo recursos atualmente existentes e aqueles futuramente incorporados à Plataforma.
+
+16. Atualização
+
+Qualquer modificação realizada pelo Servio envolvendo:
+
+novas funcionalidades;
+correções;
+melhorias;
+alterações visuais;
+atualizações de segurança;
+modificações técnicas;
+evolução da Plataforma.
+17. Infraestrutura
+
+Conjunto de recursos tecnológicos utilizados para funcionamento do Sistema, incluindo servidores, banco de dados, provedores de hospedagem, serviços de autenticação, armazenamento, sincronização e demais tecnologias necessárias ao funcionamento da Plataforma.
+
+
+CAPÍTULO III
+CADASTRO, ELEGIBILIDADE E CRIAÇÃO DE CONTAS
+18. Elegibilidade
+
+A utilização do Servio destina-se a pessoas físicas ou jurídicas que possuam capacidade legal para contratar, administrar ou utilizar os serviços disponibilizados pela Plataforma.
+
+Ao criar uma Conta, o Usuário declara que:
+
+I — possui capacidade civil para celebrar os presentes Termos;
+
+II — fornecerá informações verdadeiras, completas e atualizadas;
+
+III — utilizará a Plataforma exclusivamente para finalidades legítimas;
+
+IV — possui autorização para representar o estabelecimento, quando realizar o cadastro em nome de pessoa jurídica;
+
+V — cumprirá integralmente estes Termos e a legislação aplicável.
+
+Caso o cadastro seja realizado em nome de empresa, presume-se que o responsável possui poderes suficientes para representá-la perante o Servio.
+
+19. Cadastro do Restaurante
+
+O acesso às funcionalidades da Plataforma depende da criação de uma Conta vinculada ao restaurante.
+
+Durante o processo de cadastro poderão ser solicitadas informações como:
+
+nome do estabelecimento;
+nome do responsável;
+endereço de e-mail;
+senha;
+telefone;
+demais informações necessárias ao funcionamento da Plataforma.
+
+O Servio poderá solicitar informações adicionais sempre que entender necessário para garantir a segurança, autenticidade ou funcionamento adequado dos serviços.
+
+20. Veracidade das Informações
+
+Todas as informações fornecidas durante o cadastro deverão ser verdadeiras, completas e atualizadas.
+
+O Usuário compromete-se a manter seus dados permanentemente atualizados.
+
+O Servio não possui obrigação de verificar previamente a autenticidade das informações fornecidas, podendo presumir sua boa-fé.
+
+Caso sejam identificadas informações falsas, incompletas, inconsistentes ou fraudulentas, o Servio poderá, independentemente de aviso prévio:
+
+solicitar atualização cadastral;
+restringir funcionalidades;
+suspender temporariamente a Conta;
+cancelar definitivamente o acesso;
+adotar as medidas legais cabíveis.
+21. Atualização Cadastral
+
+Sempre que ocorrer alteração relevante nas informações do restaurante ou do responsável pela Conta, caberá exclusivamente ao Usuário promover a atualização cadastral.
+
+A ausência de atualização poderá resultar em:
+
+falhas de comunicação;
+perda de acesso;
+impossibilidade de recuperação da Conta;
+limitações operacionais.
+
+O Servio não poderá ser responsabilizado por prejuízos decorrentes da manutenção de informações desatualizadas.
+
+22. Cadastro de Funcionários
+
+Cada restaurante poderá cadastrar funcionários para utilização da Plataforma, respeitando as funcionalidades disponíveis em seu plano ou versão do sistema.
+
+O cadastro dos funcionários é realizado exclusivamente pelo Administrador ou por Usuário que possua autorização para essa finalidade.
+
+O restaurante declara possuir autorização para cadastrar seus colaboradores na Plataforma, responsabilizando-se integralmente pelas informações inseridas.
+
+O Servio atua apenas como ferramenta tecnológica, não participando da relação contratual existente entre o estabelecimento e seus funcionários.
+
+23. Responsabilidade pelo Cadastro de Funcionários
+
+Compete exclusivamente ao restaurante:
+
+conceder acessos;
+remover acessos;
+alterar permissões;
+redefinir funções;
+controlar quais colaboradores possuem autorização para utilizar o Sistema.
+
+Toda atividade realizada por funcionário regularmente vinculado ao restaurante será considerada, para fins operacionais, como atividade autorizada pelo estabelecimento, salvo comprovação inequívoca de acesso indevido.
+
+24. Exclusão de Funcionários
+
+Sempre que houver desligamento, afastamento, substituição ou perda de autorização de determinado colaborador, caberá ao Administrador remover ou restringir seu acesso à Plataforma em prazo razoável.
+
+O Servio não possui obrigação de monitorar relações empregatícias ou vínculos entre restaurantes e funcionários.
+
+25. Criação de Contas Múltiplas
+
+Salvo quando permitido pela própria Plataforma, não é permitido criar múltiplas contas com a finalidade de:
+
+contornar limitações do sistema;
+burlar restrições;
+fraudar funcionalidades;
+obter vantagens indevidas;
+ocultar identidade.
+
+O Servio poderá consolidar, restringir ou remover contas criadas com finalidade abusiva.
+
+CAPÍTULO IV
+LOGIN, AUTENTICAÇÃO E SEGURANÇA DA CONTA
+26. Credenciais de Acesso
+
+O acesso ao Servio é realizado mediante autenticação utilizando credenciais pessoais.
+
+Cada Usuário deverá manter absoluto sigilo sobre:
+
+senha;
+códigos de autenticação;
+links de recuperação;
+demais informações relacionadas ao acesso.
+
+O compartilhamento voluntário dessas informações ocorre por exclusiva responsabilidade do próprio Usuário.
+
+27. Responsabilidade pelo Uso da Conta
+
+Toda atividade realizada utilizando credenciais válidas será presumida como realizada pelo respectivo Usuário.
+
+O Servio poderá considerar legítimas todas as operações executadas após autenticação bem-sucedida, salvo evidências claras de comprometimento de segurança.
+
+28. Compartilhamento de Credenciais
+
+É vedado compartilhar credenciais de acesso com terceiros não autorizados.
+
+Também não é permitido:
+
+divulgar senhas;
+vender contas;
+emprestar contas;
+comercializar acessos;
+utilizar contas pertencentes a terceiros sem autorização.
+
+Caso o Servio identifique compartilhamento abusivo, poderá restringir ou suspender o acesso até esclarecimento da situação.
+
+29. Recuperação de Conta
+
+O processo de recuperação de acesso poderá exigir confirmação de informações cadastrais ou outras formas de verificação de identidade.
+
+O Servio poderá recusar solicitações de recuperação quando houver indícios razoáveis de fraude, tentativa de invasão ou inconsistências cadastrais.
+
+30. Segurança do Usuário
+
+O Usuário compromete-se a adotar medidas razoáveis de segurança, incluindo, entre outras:
+
+utilização de senhas fortes;
+não reutilização de senhas em serviços inseguros;
+encerramento da sessão em dispositivos públicos;
+proteção física dos equipamentos utilizados;
+comunicação imediata ao Servio em caso de suspeita de acesso não autorizado.
+31. Comprometimento da Conta
+
+Sempre que houver suspeita de:
+
+vazamento de senha;
+invasão;
+acesso não autorizado;
+perda de dispositivo;
+comprometimento das credenciais;
+
+o Usuário deverá alterar imediatamente sua senha e comunicar o ocorrido ao Servio pelos canais oficiais de atendimento.
+
+O Servio poderá, preventivamente, suspender temporariamente a Conta quando identificar risco relevante à segurança da Plataforma ou dos demais Usuários.
+
+32. Encerramento de Sessões
+
+Por razões de segurança, o Servio poderá encerrar sessões ativas, exigir novo login ou invalidar autenticações sempre que identificar atividades incompatíveis com o padrão normal de utilização.
+
+Essa medida poderá ocorrer automaticamente e não caracteriza falha na prestação dos serviços.
+
+33. Medidas de Proteção
+
+O Servio poderá empregar mecanismos destinados à proteção da Plataforma, incluindo, exemplificativamente:
+
+monitoramento de acessos;
+limitação de tentativas de autenticação;
+bloqueios temporários;
+registros de atividades;
+verificações automáticas de segurança;
+proteção contra acessos automatizados;
+mecanismos antifraude.
+
+Tais medidas visam preservar a integridade do Sistema e proteger os dados de todos os Usuários.

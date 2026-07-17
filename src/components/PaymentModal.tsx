@@ -49,16 +49,16 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-[#161B22] border border-[#30363D] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 border-b border-[#30363D] flex justify-between items-center bg-[#1c2128]">
-          <h3 className="font-bold text-white text-base flex items-center gap-2">
+        <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[#1c2128]">
+          <h3 className="font-bold text-[var(--text-main)] text-base flex items-center gap-2">
             <span>💳 Fechamento Comanda #{id}</span>
           </h3>
           <button
             onClick={onClose}
-            className="text-[#8B949E] hover:text-white cursor-pointer"
+            className="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
           >
             ✕
           </button>
@@ -67,15 +67,15 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
         {/* Content body */}
         <div className="p-5 overflow-y-auto max-h-[70vh] space-y-5">
           {/* Cash details */}
-          <div className="text-center py-4 bg-[#0D1117] border border-[#21262D] rounded-xl">
-            <span className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider mb-1">
+          <div className="text-center py-4 bg-[var(--bg-base)] border border-[var(--bg-hover)] rounded-xl">
+            <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">
               Total a Pagar
             </span>
             <span className="text-3xl font-black text-amber-500">
               R$ {totalVal.toFixed(2).replace('.', ',')}
             </span>
             {comanda.mesa && (
-              <span className="block text-xs text-[#8B949E] font-medium mt-1">
+              <span className="block text-xs text-[var(--text-muted)] font-medium mt-1">
                 {comanda.mesa}
               </span>
             )}
@@ -83,7 +83,7 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
 
           {/* Payment selector */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
               Forma de Pagamento
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -97,7 +97,7 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
                     className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                       selected
                         ? 'bg-amber-500/10 border-amber-500 text-amber-500'
-                        : 'bg-[#0D1117] border-[#30363D] text-[#8B949E] hover:border-[#484F58] hover:text-white'
+                        : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--text-muted)] hover:border-[#484F58] hover:text-[var(--text-main)]'
                     }`}
                   >
                     <span className="text-xl mb-1">{m.icon}</span>
@@ -113,10 +113,10 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="space-y-3 bg-[#0D1117] border border-[#30363D] p-4 rounded-xl"
+              className="space-y-3 bg-[var(--bg-base)] border border-[var(--border-color)] p-4 rounded-xl"
             >
               <div>
-                <label className="block text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                   Valor Recebido R$
                 </label>
                 <input
@@ -126,14 +126,14 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
                   value={received}
                   onChange={(e) => setReceived(e.target.value)}
                   placeholder={totalVal.toFixed(2)}
-                  className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-3.5 py-2 text-sm text-[#E6EDF3] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
                 />
               </div>
 
               {numericReceived >= totalVal && (
                 <div className="bg-[#1c2128] border border-emerald-500/20 rounded-lg p-3 flex items-center justify-between">
                   <div>
-                    <span className="block text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">Troco</span>
+                    <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Troco</span>
                     <span className="text-lg font-black text-emerald-400">
                       R$ {change.toFixed(2).replace('.', ',')}
                     </span>
@@ -169,10 +169,10 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
         </div>
 
         {/* Footer actions */}
-        <div className="p-4 border-t border-[#30363D] bg-[#1c2128] flex justify-between gap-3 shrink-0">
+        <div className="p-4 border-t border-[var(--border-color)] bg-[#1c2128] flex justify-between gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-[#21262D] border border-[#30363D] text-[#E6EDF3] hover:bg-[#30363D] text-xs font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+            className="flex-1 px-4 py-2.5 bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[#30363D] text-xs font-bold rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
           >
             <ArrowLeft size={14} />
             <span>Voltar</span>
