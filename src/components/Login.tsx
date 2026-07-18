@@ -239,6 +239,9 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
     if (lowercaseMsg.includes('network') || lowercaseMsg.includes('failed to fetch')) {
       return 'Falha de conexão. Verifique sua internet e tente novamente.';
     }
+    if (lowercaseMsg.includes('new password should be different')) {
+      return 'A nova senha deve ser diferente da antiga.';
+    }
     return msg;
   };
 
@@ -420,9 +423,19 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const { clientX, clientY } = e;
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    target.style.setProperty('--mouse-x', `${x}px`);
+    target.style.setProperty('--mouse-y', `${y}px`);
+  };
+
   return (
     <>
-      <main className="servio-shell">
+      <main className="servio-shell" onMouseMove={handleMouseMove}>
         <div className="servio-bg" aria-hidden="true">
           <div className="orb orb-1" />
           <div className="orb orb-2" />
@@ -433,8 +446,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           {/* LEFT / HERO */}
           <section className="servio-hero">
             <header className="brand">
-              <div className="brand-mark" aria-hidden="true">
-                <ChefHat size={20} strokeWidth={2.4} />
+              <div aria-hidden="true">
+                <img src="/images/logo.png" alt="Servio Logo" className="w-12 h-12 object-contain rounded-xl" />
               </div>
               <div className="brand-text">
                 <span className="brand-name">Servio</span>
@@ -450,7 +463,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
               </h1>
 
               <p className="hero-sub">
-                Com o <strong>Servio</strong>, você controla comandas, vendas e equipe em tempo real.
+                Com o <strong className="text-sky-600">Servio</strong>, você controla comandas, vendas e equipe em tempo real.
                 Mais agilidade, menos erros, mais resultados.
               </p>
 
@@ -473,7 +486,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           <section className="servio-card-wrap">
             <div className={`servio-card ${(view === 'signup' || (view === 'login' && isEmployeeLogin)) ? '!p-4 sm:!p-5 sm:!px-6' : '!p-5 sm:!p-6 sm:!px-8'} relative`}>
               
-              {view === 'signup' && (
+              {(view === 'signup' || view === 'forgot') && (
                 <button
                   type="button"
                   onClick={() => {
@@ -492,8 +505,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
 
               <div className={`card-head mb-4 ${view === 'signup' ? '!mb-3' : ''}`}>
                 {view !== 'signup' && (
-                  <div className="card-mark" aria-hidden="true">
-                    <ChefHat size={22} strokeWidth={2.4} />
+                  <div aria-hidden="true">
+                    <img src="/images/logo.png" alt="Servio Logo" className="w-[60px] h-[60px] object-contain" />
                   </div>
                 )}
                 <h2 className="card-title">
@@ -532,7 +545,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {view === 'signup' && (
                   <>
                     <div className="group">
-                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-blue-600 transition-colors">
                         Nome do Restaurante
                       </label>
                       <div className="relative">
@@ -546,16 +559,16 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={restaurantName}
                           onChange={(e) => setRestaurantName(e.target.value)}
                           placeholder="Ex: Los Pollos Hermanos"
-                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
+                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
                         />
                       </div>
                     </div>
 
                     <div className="group">
-                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors flex items-center gap-1 relative">
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-blue-600 transition-colors flex items-center gap-1 relative">
                         Identificador
                         <div className="group/tooltip relative flex items-center">
-                          <HelpCircle size={14} className="text-zinc-400 hover:text-[#098043] cursor-help" />
+                          <HelpCircle size={14} className="text-zinc-400 hover:text-blue-600 cursor-help" />
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-white text-zinc-900 border border-zinc-200 text-[11px] leading-relaxed rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-10 hidden group-hover/tooltip:block font-normal normal-case tracking-normal text-center">
                             Seu identificador é único, escolhido por você, e é o que seus funcionários usam para acessar o sistema.
                             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white drop-shadow-sm"></div>
@@ -573,7 +586,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                           placeholder="Ex: pizzaria-westeros"
-                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${identifierStatus === 'invalid' || identifierStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : identifierStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${identifierStatus === 'invalid' || identifierStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : identifierStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
                         />
                       </div>
                       <div className={`mt-1 text-[10px] font-medium leading-tight ${identifier.length > 0 ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
@@ -592,7 +605,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                     </div>
 
                     <div className="group">
-                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                      <label className="block text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-blue-600 transition-colors">
                         Nome Completo
                       </label>
                       <div className="relative">
@@ -606,13 +619,13 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={ownerName}
                           onChange={(e) => setOwnerName(e.target.value)}
                           placeholder="Ex: Jon Snow"
-                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
+                          className="w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm"
                         />
                       </div>
                     </div>
 
                     <div className="group">
-                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-[#098043] transition-colors">
+                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5 group-focus-within:text-blue-600 transition-colors">
                         E-MAIL
                       </label>
                       <div className="relative">
@@ -626,7 +639,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="seu@email.com"
-                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${emailStatus === 'invalid' || emailStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : emailStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                          className={`w-full pl-9 pr-3 py-1.5 sm:py-1.5 text-[12px] bg-white border ${emailStatus === 'invalid' || emailStatus === 'taken' ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : emailStatus === 'available' ? 'border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
                         />
                       </div>
                       <div className={`mt-1 text-[10px] font-medium leading-tight ${email.length > 0 ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
@@ -649,7 +662,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {/* Identifier Field (For Employee Login) */}
                 {view === 'login' && isEmployeeLogin && (
                   <div className="group">
-                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
+                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-blue-600 transition-colors">
                       Identificador do restaurante
                     </label>
                     <div className="relative">
@@ -663,7 +676,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                         placeholder="Ex: pizzaria-westeros"
-                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
                       />
                     </div>
                   </div>
@@ -672,7 +685,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {/* Employee Username Field */}
                 {view === 'login' && isEmployeeLogin && (
                   <div className="group">
-                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
+                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-blue-600 transition-colors">
                       USUÁRIO
                     </label>
                     <div className="relative">
@@ -686,7 +699,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Nome de usuário"
-                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
                       />
                     </div>
                   </div>
@@ -695,7 +708,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {/* 2. Email Field (For Login, SignUp, and Forgot view) */}
                 {view !== 'reset' && view !== 'signup' && (!isEmployeeLogin || view !== 'login') && (
                   <div className="group">
-                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-[#098043] transition-colors">
+                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 group-focus-within:text-blue-600 transition-colors">
                       E-MAIL
                     </label>
                     <div className="relative">
@@ -709,7 +722,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="seu@email.com"
-                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
+                        className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-sm shadow-sm"
                       />
                     </div>
                   </div>
@@ -719,14 +732,14 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {view !== 'forgot' && (
                   <div className="group">
                     <div className={`flex justify-between items-center ${view === 'signup' ? 'mb-1.5' : 'mb-2'}`}>
-                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider group-focus-within:text-[#098043] transition-colors">
+                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider group-focus-within:text-blue-600 transition-colors">
                         SENHA
                       </label>
                       {view === 'login' && (
                         <button
                           type="button"
                           onClick={() => { setViewState('forgot'); setError(null); setSuccess(null); }}
-                          className="text-xs text-[#098043] hover:underline cursor-pointer font-semibold transition-colors"
+                          className="text-xs text-blue-600 hover:underline cursor-pointer font-semibold transition-colors"
                         >
                           Esqueceu a senha?
                         </button>
@@ -743,7 +756,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={view === 'reset' ? 'Nova senha' : 'Sua senha'}
-                        className={`w-full bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-[#098043] focus:ring-1 focus:ring-[#098043] disabled:bg-zinc-50 disabled:text-zinc-500 transition-all shadow-sm ${view === 'signup' ? 'pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px]' : 'pl-11 pr-12 py-3.5 text-sm'}`}
+                        className={`w-full bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all shadow-sm ${view === 'signup' ? 'pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px]' : 'pl-11 pr-12 py-3.5 text-sm'}`}
                       />
                       <button
                         type="button"
@@ -787,7 +800,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 {view === 'signup' && (
                   <>
                     <div className="group">
-                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1 group-focus-within:text-[#098043] transition-colors">
+                      <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1 group-focus-within:text-blue-600 transition-colors">
                         Confirmar senha
                       </label>
                       <div className="relative">
@@ -801,7 +814,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirmar sua senha"
-                          className={`w-full pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px] bg-white border ${(confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-zinc-200 focus:border-[#098043] focus:ring-[#098043]'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                          className={`w-full pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px] bg-white border ${(confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
                         />
                         <button
                           type="button"
@@ -826,7 +839,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           id="terms"
                           checked={agreedToTerms}
                           onChange={(e) => { setAgreedToTerms(e.target.checked); if (hasAttemptedSubmit) setHasAttemptedSubmit(false); }}
-                          className="mt-0.5 rounded border-zinc-300 text-[#098043] focus:ring-[#098043]"
+                          className="mt-0.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-600"
                         />
                         <label htmlFor="terms" className="text-[11px] text-zinc-600 leading-tight">
                           Ao criar conta, concordo com os <a href="#" className="font-semibold text-zinc-800 hover:underline">Termos de uso</a> e <a href="#" className="font-semibold text-zinc-800 hover:underline">Política de privacidade</a>
@@ -853,7 +866,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 <button
                   type="submit"
                   disabled={isLoading || (view === 'login' && cooldownSeconds > 0) || ((view === 'signup' || view === 'reset') && !isPasswordValid) || (view === 'signup' && identifierStatus !== 'available') || (view === 'signup' && emailStatus !== 'available')}
-                  className={`hover-shine relative w-full bg-[#098043] hover:bg-[#076635] disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all duration-300 shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${view === "signup" ? "mt-2 py-2.5 text-[13.5px]" : "mt-3 py-3.5 text-sm"}`}
+                  className={`hover-shine relative w-full bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all duration-300 shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer ${view === "signup" ? "mt-2 py-2.5 text-[13.5px]" : "mt-3 py-3.5 text-sm"}`}
                 >
                   {isLoading ? (
                     <>
@@ -887,7 +900,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                         setError(null);
                         setSuccess(null);
                       }}
-                      className="w-full bg-white border border-[#098043] text-[#098043] hover:bg-emerald-50 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer py-3 text-sm shadow-sm active:scale-[0.98]"
+                      className="w-full bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer py-3 text-sm shadow-sm active:scale-[0.98]"
                     >
                       <User size={18} />
                       {isEmployeeLogin ? 'Entrar como Administrador' : 'Entrar como Funcionário'}
@@ -931,11 +944,11 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                   >
                     {view === 'login' ? (
                       <span>
-                        Não tem uma conta? <strong className="text-[#098043] font-bold">Cadastre-se</strong>
+                        Não tem uma conta? <strong className="text-blue-600 font-bold">Cadastre-se</strong>
                       </span>
                     ) : (
                       <span>
-                        Já possui uma conta? <strong className="text-[#098043] font-bold">Faça login</strong>
+                        Já possui uma conta? <strong className="text-blue-600 font-bold">Faça login</strong>
                       </span>
                     )}
                   </button>
@@ -948,7 +961,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                     className="text-sm text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <span>
-                      <strong className="text-[#098043] font-bold">Voltar para Login</strong>
+                      <strong className="text-blue-600 font-bold">Voltar para Login</strong>
                     </span>
                   </button>
                 )}

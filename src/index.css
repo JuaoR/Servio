@@ -165,7 +165,7 @@
 .orb-2 {
   width: 620px; height: 620px;
   right: -180px; bottom: -220px;
-  background: radial-gradient(circle at 60% 60%, oklch(0.68 0.14 165 / 0.5), transparent 70%);
+  background: radial-gradient(circle at 60% 60%, oklch(0.68 0.14 250 / 0.5), transparent 70%);
   animation-delay: -6s;
 }
 @keyframes floatOrb {
@@ -175,10 +175,10 @@
 .grid-noise {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(oklch(0.5 0.05 250 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.5 0.05 250 / 0.05) 1px, transparent 1px);
+    linear-gradient(oklch(0.5 0.05 250 / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.5 0.05 250 / 0.12) 1px, transparent 1px);
   background-size: 42px 42px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  mask-image: radial-gradient(180px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black 90%, transparent 100%);
 }
 
 .servio-container {
@@ -218,8 +218,8 @@
   box-shadow: 0 8px 20px -8px oklch(0.4 0.15 250 / 0.55), inset 0 1px 0 oklch(1 0 0 / 0.25);
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1; }
-.brand-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
-.brand-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted-foreground); margin-top: 4px; }
+.brand-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; color: #0f172a; }
+.brand-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #64748b; margin-top: 4px; }
 
 .pill {
   align-self: flex-start;
@@ -251,10 +251,10 @@
   max-width: 46ch;
   font-size: 16px;
   line-height: 1.65;
-  color: var(--muted-foreground);
+  color: #64748b;
   margin: 0;
 }
-.hero-sub strong { color: var(--foreground); font-weight: 600; }
+.hero-sub strong { color: #0f172a; font-weight: 600; }
 
 .hero-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 12px; }
 .hero-list li {
@@ -270,7 +270,7 @@
 
 .hero-foot {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12.5px; color: var(--muted-foreground);
+  font-size: 12.5px; color: #64748b;
   letter-spacing: 0.01em;
 }
 .hero-foot svg { color: var(--brand); }
@@ -314,8 +314,8 @@
   border: 1px solid oklch(0.55 0.16 250 / 0.18);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9);
 }
-.card-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: var(--foreground); }
-.card-sub { font-size: 14px; color: var(--muted-foreground); margin: 0; }
+.card-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #0f172a; }
+.card-sub { font-size: 14px; color: #64748b; margin: 0; }
 
 .card-form { display: flex; flex-direction: column; gap: 18px; }
 

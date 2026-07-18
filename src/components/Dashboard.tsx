@@ -75,13 +75,6 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
             <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </p>
         </div>
-        <button
-          onClick={() => onNavigate('comandas')}
-          className="btn btn-primary self-start sm:self-auto shadow-md shadow-sky-500/5 cursor-pointer"
-        >
-          <Plus size={16} />
-          <span>Lançar Comanda</span>
-        </button>
       </div>
 
       {/* Stats Grid */}

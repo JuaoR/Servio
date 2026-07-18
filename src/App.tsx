@@ -527,13 +527,8 @@ export default function App() {
         <div>
           {/* Logo container */}
           <div className="p-5 border-b border-[var(--border-color)] bg-[var(--bg-panel)] flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shadow-lg">
-              <ChefHat className="text-[#0D1117]" size={16} />
-            </div>
-            <div>
-              <span className="text-lg font-serif tracking-tight text-sky-600">Servio</span>
-              <span className="block text-[8px] text-zinc-600 tracking-[0.15em] uppercase font-bold">Gestão</span>
-            </div>
+            <img src="/images/logo.png" alt="Servio Logo" className="w-10 h-10 object-contain" />
+            <span className="text-xl font-serif tracking-tight text-sky-600">Servio</span>
           </div>
 
           {/* Nav links */}
@@ -680,11 +675,9 @@ export default function App() {
             >
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
-                      <ChefHat className="text-[#0D1117]" size={18} />
-                    </div>
-                    <span className="text-lg font-black text-sky-500">Servio</span>
+                  <div className="flex items-center gap-3">
+                    <img src="/images/logo.png" alt="Servio Logo" className="w-10 h-10 object-contain" />
+                    <span className="text-xl font-serif tracking-tight text-sky-600">Servio</span>
                   </div>
                   <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">
                     <X size={20} />

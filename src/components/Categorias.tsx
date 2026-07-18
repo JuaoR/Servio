@@ -78,7 +78,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
   return (
     <div className="space-y-4">
       {/* Header bar */}
-      <div className="flex justify-end bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+      <div className="flex justify-start bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <button
           onClick={handleOpenCreate}
           className="btn btn-primary cursor-pointer"

@@ -162,11 +162,8 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
         </button>
       </div>
 
-      {/* Grid Layout containing Form and Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Waiters list representation - takes 2 cols if form is hidden or 2 cols anyway */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Waiters list representation */}
+      <div className="space-y-4">
           
           {/* Search bar */}
           <div className="relative">
@@ -281,22 +278,25 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
           </div>
         </div>
 
-        {/* Form panel column (Side drawer style) */}
-        <div>
-          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 sticky top-6">
+      {/* Form panel Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-2xl relative"
+          >
             <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)] mb-4">
               <h3 className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles size={13} className="text-sky-500" />
                 <span>{editingId ? 'Editar Funcionário' : 'Novo Funcionário'}</span>
               </h3>
-              {showForm && (
-                <button
-                  onClick={() => { setShowForm(false); setEditingId(null); }}
-                  className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
-              )}
+              <button
+                onClick={() => { setShowForm(false); setEditingId(null); }}
+                className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer p-1"
+              >
+                <X size={16} />
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -366,27 +366,24 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
               {/* Form buttons */}
               <div className="flex gap-2 pt-2">
                 <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setEditingId(null); }}
+                  className="w-1/2 py-2 bg-zinc-100 dark:bg-zinc-800 text-[var(--text-main)] rounded-xl font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
                   type="submit"
-                  className="flex-1 btn btn-primary flex justify-center items-center gap-1.5 text-xs font-bold"
+                  className="w-1/2 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
                 >
                   <Check size={14} />
-                  <span>{editingId ? 'Salvar Alterações' : 'Adicionar Funcionário'}</span>
+                  <span>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</span>
                 </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={() => { setShowForm(false); setEditingId(null); }}
-                    className="btn btn-secondary text-xs"
-                  >
-                    Cancelar
-                  </button>
-                )}
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
-
-      </div>
+      )}
     </div>
   );
 }
