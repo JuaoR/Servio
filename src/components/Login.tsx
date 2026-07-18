@@ -843,8 +843,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
 
                 {/* 5. Cooldown Lock Info */}
                 {view === 'login' && cooldownSeconds > 0 && (
-                  <div className="p-3 bg-amber-50 text-amber-800 text-[11px] rounded-lg border border-amber-100 flex items-center gap-2">
-                    <span className="animate-pulse w-2 h-2 bg-amber-600 rounded-full" />
+                  <div className="p-3 bg-sky-50 text-sky-800 text-[11px] rounded-lg border border-sky-100 flex items-center gap-2">
+                    <span className="animate-pulse w-2 h-2 bg-sky-600 rounded-full" />
                     <span>Bloqueado temporariamente por excesso de tentativas. Aguarde {cooldownSeconds}s.</span>
                   </div>
                 )}

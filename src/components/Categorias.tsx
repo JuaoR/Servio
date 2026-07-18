@@ -200,7 +200,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Bebidas"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -216,7 +216,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
                       onClick={() => setIcon(icName)}
                       className={`p-2 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
                         icon === icName
-                          ? 'bg-amber-500/10 border-amber-500 text-amber-500 font-bold'
+                          ? 'bg-sky-500/10 border-sky-500 text-sky-500 font-bold'
                           : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[#484F58]'
                       }`}
                     >
@@ -259,7 +259,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-[#090D14] text-xs font-bold rounded-lg cursor-pointer"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-[#090D14] text-xs font-bold rounded-lg cursor-pointer"
                 >
                   {editingId ? 'Salvar' : 'Criar'}
                 </button>

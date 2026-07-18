@@ -92,7 +92,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
               placeholder="Buscar produto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
             />
           </div>
 
@@ -100,7 +100,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
           <select
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}
-            className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
+            className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
           >
             <option value="all">Todas as Categorias</option>
             {categories.map(c => (
@@ -159,7 +159,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                           {catInfo.name}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-bold text-amber-500">
+                      <td className="py-3 px-4 font-bold text-sky-500">
                         R$ {p.price.toFixed(2).replace('.', ',')}
                       </td>
                       <td className="py-3 px-4">
@@ -232,7 +232,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Picanha Grelhada"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -244,7 +244,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                   required
                   value={cid}
                   onChange={(e) => setCid(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>
@@ -267,7 +267,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0,00"
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -278,7 +278,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                   <select
                     value={avail ? '1' : '0'}
                     onChange={(e) => setAvail(e.target.value === '1')}
-                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                   >
                     <option value="1">Disponível</option>
                     <option value="0">Indisponível</option>
@@ -296,7 +296,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-[#090D14] text-xs font-bold rounded-lg cursor-pointer"
+                  className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-[#090D14] text-xs font-bold rounded-lg cursor-pointer"
                 >
                   {editingId ? 'Salvar' : 'Criar'}
                 </button>

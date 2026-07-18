@@ -13,16 +13,6 @@ interface DashboardProps {
 
 export default function Dashboard({ comandas, history, rname, onNavigate, onOpenComanda }: DashboardProps) {
 
-  const [isDark, setIsDark] = React.useState(() => {
-    return document.documentElement.classList.contains('dark');
-  });
-
-  const toggleTheme = () => {
-    const isDarkNow = document.documentElement.classList.toggle('dark');
-    setIsDark(isDarkNow);
-    localStorage.setItem('servio_theme', isDarkNow ? 'dark' : 'light');
-  };
-
   const abertas = Object.values(comandas).filter(c => c.status === 'aberta');
   
   const todayStr = new Date().toDateString();
@@ -66,10 +56,10 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
   };
 
   const PAYMENT_LABELS: Record<string, { ic: string; lb: string; color: string }> = {
-    dinheiro: { ic: '💵', lb: 'Dinheiro', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    credito: { ic: '💳', lb: 'Crédito', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    debito: { ic: '🏧', lb: 'Débito', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    pix: { ic: '⚡', lb: 'Pix', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' }
+    dinheiro: { ic: '💵', lb: 'Dinheiro', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
+    credito: { ic: '💳', lb: 'Crédito', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
+    debito: { ic: '🏧', lb: 'Débito', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
+    pix: { ic: '⚡', lb: 'Pix', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' }
   };
 
   return (
@@ -87,7 +77,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
         </div>
         <button
           onClick={() => onNavigate('comandas')}
-          className="btn btn-primary self-start sm:self-auto shadow-md shadow-amber-500/5 cursor-pointer"
+          className="btn btn-primary self-start sm:self-auto shadow-md shadow-sky-500/5 cursor-pointer"
         >
           <Plus size={16} />
           <span>Lançar Comanda</span>
@@ -105,9 +95,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Comandas Abertas</p>
-              <h3 className="text-3xl font-black text-blue-400 mt-2">{abertas.length}</h3>
+              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{abertas.length}</h3>
             </div>
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
               <ClipboardList size={20} />
             </div>
           </div>
@@ -123,9 +113,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Faturamento Hoje</p>
-              <h3 className="text-3xl font-black text-[#E8A200] mt-2">{formatCurrency(faturamentoHoje)}</h3>
+              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{formatCurrency(faturamentoHoje)}</h3>
             </div>
-            <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
               <Landmark size={20} />
             </div>
           </div>
@@ -141,9 +131,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Ticket Médio</p>
-              <h3 className="text-3xl font-black text-blue-400 mt-2">{formatCurrency(ticketMedio)}</h3>
+              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{formatCurrency(ticketMedio)}</h3>
             </div>
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
               <Scale size={20} />
             </div>
           </div>
@@ -159,12 +149,12 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col h-[400px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
               <span>Comandas em Aberto ({abertas.length})</span>
             </h2>
             <button
               onClick={() => onNavigate('comandas')}
-              className="text-xs text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+              className="text-xs text-sky-500 hover:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
             >
               <span>Ver todas</span>
               <ArrowRight size={14} />
@@ -178,7 +168,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
                 <p className="text-sm">Nenhuma comanda aberta no momento.</p>
                 <button
                   onClick={() => onNavigate('comandas')}
-                  className="text-xs text-amber-500 hover:underline mt-2 cursor-pointer font-medium"
+                  className="text-xs text-sky-500 hover:underline mt-2 cursor-pointer font-medium"
                 >
                   Abrir nova comanda
                 </button>
@@ -193,16 +183,16 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
                         key={c.id}
                         whileHover={{ scale: 1.02 }}
                         onClick={() => onOpenComanda(c.id)}
-                        className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all bg-blue-500/10 border-blue-500/30 hover:border-blue-500`}
+                        className={`p-2 rounded-xl border text-center cursor-pointer transition-all bg-sky-500/10 border-sky-500/30 hover:border-sky-500`}
                       >
-                        <span className={`text-xl font-black block text-blue-400`}>
+                        <span className={`text-xl font-black block text-[var(--text-main)]`}>
                           #{c.id}
                         </span>
                         <span className="text-[11px] text-[var(--text-muted)] font-medium block mt-1 truncate">
                           {c.mesa || `Comanda ${c.id}`}
                         </span>
                         <div className="flex items-center justify-center gap-1.5 mt-2">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-blue-500/10 text-blue-400`}>
+                          <span className={`text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-sky-500/15 text-sky-500`}>
                             {getElapsedStr(c.openedAt)}
                           </span>
                         </div>
@@ -223,7 +213,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
             <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight">Últimas Vendas Fechadas</h2>
             <button
               onClick={() => onNavigate('historico')}
-              className="text-xs text-amber-500 hover:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+              className="text-xs text-sky-500 hover:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
             >
               <span>Relatório completo</span>
               <ArrowRight size={14} />
@@ -260,7 +250,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
                               <span>{pay.lb}</span>
                             </span>
                           </td>
-                          <td className="py-2.5 font-bold text-amber-500 text-right">{formatCurrency(h.total)}</td>
+                          <td className="py-2.5 font-bold text-[var(--text-main)] text-right">{formatCurrency(h.total)}</td>
                         </tr>
                       );
                     })}

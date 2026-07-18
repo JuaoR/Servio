@@ -166,7 +166,7 @@ export default function ComandaModal({
         <div class="c">━━━ COMANDA #${id} ━━━</div>
         <div class="hr"></div>
         <div>Mesa: ${mesa || '—'}</div>
-        <div>Garçom: ${garcom || '—'}</div>
+        <div>Funcionário: ${garcom || '—'}</div>
         <div>Abertura: ${formattedDate}</div>
         ${obs ? `<div>Obs: ${obs}</div>` : ''}
         <div class="hr"></div>
@@ -214,9 +214,9 @@ export default function ComandaModal({
         {/* Header */}
         <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[#1c2128]">
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-black text-amber-500">#{id}</span>
+            <span className="text-2xl font-black text-sky-500">#{id}</span>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-              open ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-[var(--text-muted)] bg-[var(--bg-hover)]'
+              open ? 'text-sky-400 bg-sky-500/10 border border-sky-500/20' : 'text-[var(--text-muted)] bg-[var(--bg-hover)]'
             }`}>
               {open ? '● Aberta' : '○ Livre'}
             </span>
@@ -229,7 +229,7 @@ export default function ComandaModal({
               <button
                 onClick={handlePrint}
                 disabled={comanda.items.length === 0}
-                className="px-3 py-1.5 bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 text-[10px] font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 ml-2 transition-colors"
+                className="px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-hover)] disabled:opacity-40 text-[10px] font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 ml-2 transition-colors"
               >
                 <Printer size={12} />
                 <span className="hidden sm:inline">Imprimir</span>
@@ -260,21 +260,21 @@ export default function ComandaModal({
                   value={mesa}
                   onChange={(e) => handleMetaChange('mesa', e.target.value)}
                   placeholder="Ex: Mesa 5, João"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
 
               <div>
                 <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
                   <User size={12} />
-                  <span>Garçom</span>
+                  <span>Funcionário</span>
                 </label>
                 <input
                   type="text"
                   value={garcom}
                   onChange={(e) => handleMetaChange('garcom', e.target.value)}
                   placeholder="Ex: Lucas"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function ComandaModal({
                 value={obs}
                 onChange={(e) => handleMetaChange('obs', e.target.value)}
                 placeholder="Ex: Sem cebola nos pratos, gelo separado"
-                className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
               />
             </div>
 
@@ -319,7 +319,7 @@ export default function ComandaModal({
                   {comanda.items.map(item => (
                     <div
                       key={item.id}
-                      className="p-3 bg-[var(--bg-base)] border border-[var(--bg-hover)] rounded-xl flex items-start gap-3 hover:border-amber-500/30 transition-colors"
+                      className="p-3 bg-[var(--bg-base)] border border-[var(--bg-hover)] rounded-xl flex items-start gap-3 hover:border-sky-500/30 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <span className="text-xs font-bold text-[var(--text-main)] block truncate">{item.name}</span>
@@ -327,7 +327,7 @@ export default function ComandaModal({
                           R$ {item.price.toFixed(2)} × {item.qty} = <strong className="text-[var(--text-main)]">R$ {(item.price * item.qty).toFixed(2)}</strong>
                         </span>
                         {item.note && (
-                          <span className="inline-block text-[9px] text-amber-500 bg-amber-500/5 px-1.5 py-0.5 rounded border border-amber-500/10 mt-1">
+                          <span className="inline-block text-[9px] text-sky-500 bg-sky-500/5 px-1.5 py-0.5 rounded border border-sky-500/10 mt-1">
                             Obs: {item.note}
                           </span>
                         )}
@@ -339,11 +339,11 @@ export default function ComandaModal({
                               value={tempNote}
                               onChange={(e) => setTempNote(e.target.value)}
                               placeholder="Observação do item..."
-                              className="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md px-2 py-1 text-xs text-[var(--text-main)] outline-none focus:border-amber-500"
+                              className="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md px-2 py-1 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
                             />
                             <button
                               onClick={() => handleSaveNote(item.id)}
-                              className="px-2 py-1 bg-amber-500 text-black font-bold text-[10px] rounded hover:bg-amber-600 cursor-pointer"
+                              className="px-2 py-1 bg-sky-500 text-black font-bold text-[10px] rounded hover:bg-sky-600 cursor-pointer"
                             >
                               Ok
                             </button>
@@ -355,7 +355,7 @@ export default function ComandaModal({
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleQtyChange(item.id, -1)}
-                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-amber-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Minus size={11} />
                           </button>
@@ -364,7 +364,7 @@ export default function ComandaModal({
                           </span>
                           <button
                             onClick={() => handleQtyChange(item.id, 1)}
-                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-amber-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Plus size={11} />
                           </button>
@@ -404,7 +404,7 @@ export default function ComandaModal({
                   onClick={() => setPickerCat('all')}
                   className={`px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
                     pickerCat === 'all'
-                      ? 'bg-amber-500 border-amber-500 text-black'
+                      ? 'bg-sky-500 border-sky-500 text-black'
                       : 'bg-[var(--bg-hover)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   }`}
                 >
@@ -435,7 +435,7 @@ export default function ComandaModal({
                   placeholder="Buscar produto..."
                   value={pickerSearch}
                   onChange={(e) => setPickerSearch(e.target.value)}
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
                 />
               </div>
             </div>
@@ -453,7 +453,7 @@ export default function ComandaModal({
                     <div
                       key={p.id}
                       onClick={() => handleAddItem(p)}
-                      className="p-2.5 bg-[var(--bg-card)] border border-[var(--bg-hover)] hover:border-amber-500/50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+                      className="p-2.5 bg-[var(--bg-card)] border border-[var(--bg-hover)] hover:border-sky-500/50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
                     >
                       <div className="min-w-0 pr-2">
                         <span className="text-xs font-semibold text-[var(--text-main)] block truncate">{p.name}</span>
@@ -466,7 +466,7 @@ export default function ComandaModal({
                           </span>
                         )}
                       </div>
-                      <span className="text-xs font-black text-amber-500 shrink-0">
+                      <span className="text-xs font-black text-sky-500 shrink-0">
                         R$ {p.price.toFixed(2)}
                       </span>
                     </div>
@@ -495,20 +495,20 @@ export default function ComandaModal({
                 value={discount || ''}
                 onChange={(e) => handleDiscountChange(e.target.value)}
                 placeholder="0.00"
-                className="w-16 bg-[var(--bg-base)] border border-[var(--border-color)] rounded px-1.5 py-0.5 text-xs text-[var(--text-main)] text-center outline-none focus:border-amber-500"
+                className="w-16 bg-[var(--bg-base)] border border-[var(--border-color)] rounded px-1.5 py-0.5 text-xs text-[var(--text-main)] text-center outline-none focus:border-sky-500"
               />
             </div>
 
             <div>
               <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Total</span>
-              <span className="text-lg font-black text-amber-500">R$ {totalVal.toFixed(2)}</span>
+              <span className="text-lg font-black text-sky-500">R$ {totalVal.toFixed(2)}</span>
             </div>
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={onClose}
-              className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-initial px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-hover)] disabled:opacity-40 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
             >
               <ArrowLeft size={14} />
               <span>Voltar</span>
@@ -517,7 +517,7 @@ export default function ComandaModal({
               <button
                 onClick={() => onShowPayment(id)}
                 disabled={comanda.items.length === 0}
-                className="flex-1 sm:flex-initial px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-[var(--text-main)] text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 sm:flex-initial px-5 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-[var(--text-main)] text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <CheckSquare size={14} />
                 <span>Fechar &amp; Pagar</span>
@@ -533,9 +533,9 @@ export default function ComandaModal({
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white border border-zinc-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-left"
+            className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-left"
           >
-            <h3 className="text-sm font-bold text-zinc-900">Limpar Itens</h3>
+            <h3 className="text-sm font-bold text-[var(--text-main)]">Limpar Itens</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
               Tem certeza que deseja remover todos os itens?
             </p>
@@ -543,7 +543,7 @@ export default function ComandaModal({
               <button
                 type="button"
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-[var(--text-main)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
               >
                 Cancelar
               </button>

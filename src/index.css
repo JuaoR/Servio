@@ -48,33 +48,33 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0.005 150);
-  --foreground: oklch(0.16 0.02 160);
+  --background: oklch(0.985 0.005 250);
+  --foreground: oklch(0.16 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.02 160);
+  --card-foreground: oklch(0.16 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.02 160);
-  --primary: oklch(0.52 0.16 150);
-  --primary-foreground: oklch(0.99 0.005 150);
-  --primary-glow: oklch(0.62 0.19 150);
-  --primary-deep: oklch(0.4 0.14 150);
-  --secondary: oklch(0.965 0.015 150);
-  --secondary-foreground: oklch(0.2 0.03 160);
-  --muted: oklch(0.96 0.008 150);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.95 0.03 150);
-  --accent-foreground: oklch(0.32 0.11 150);
+  --popover-foreground: oklch(0.16 0.02 260);
+  --primary: oklch(0.52 0.16 250);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --primary-glow: oklch(0.62 0.19 250);
+  --primary-deep: oklch(0.4 0.14 250);
+  --secondary: oklch(0.965 0.015 250);
+  --secondary-foreground: oklch(0.2 0.03 260);
+  --muted: oklch(0.96 0.008 250);
+  --muted-foreground: oklch(0.5 0.02 260);
+  --accent: oklch(0.95 0.03 250);
+  --accent-foreground: oklch(0.32 0.11 250);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.92 0.01 150);
-  --input: oklch(0.94 0.01 150);
-  --ring: oklch(0.55 0.16 150);
-  --brand: oklch(0.52 0.16 150);
-  --brand-strong: oklch(0.42 0.15 150);
-  --gradient-brand: linear-gradient(135deg, oklch(0.55 0.17 150), oklch(0.4 0.14 150));
-  --gradient-surface: radial-gradient(1200px 700px at 12% 10%, oklch(0.97 0.04 150 / 0.9), transparent 60%), radial-gradient(900px 600px at 90% 90%, oklch(0.95 0.06 160 / 0.55), transparent 55%), linear-gradient(180deg, oklch(0.99 0.005 150), oklch(0.96 0.012 150));
-  --shadow-card: 0 1px 0 oklch(1 0 0 / 0.7) inset, 0 40px 80px -30px oklch(0.35 0.11 150 / 0.28), 0 12px 32px -12px oklch(0.4 0.02 160 / 0.12);
-  --shadow-btn: 0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 24px -8px oklch(0.4 0.15 150 / 0.55), 0 2px 6px -1px oklch(0.3 0.12 150 / 0.35);
+  --border: oklch(0.92 0.01 250);
+  --input: oklch(0.94 0.01 250);
+  --ring: oklch(0.55 0.16 250);
+  --brand: oklch(0.52 0.16 250);
+  --brand-strong: oklch(0.42 0.15 250);
+  --gradient-brand: linear-gradient(135deg, oklch(0.55 0.17 250), oklch(0.4 0.14 250));
+  --gradient-surface: radial-gradient(1200px 700px at 12% 10%, oklch(0.97 0.04 250 / 0.9), transparent 60%), radial-gradient(900px 600px at 90% 90%, oklch(0.95 0.06 260 / 0.55), transparent 55%), linear-gradient(180deg, oklch(0.99 0.005 250), oklch(0.96 0.012 250));
+  --shadow-card: 0 1px 0 oklch(1 0 0 / 0.7) inset, 0 40px 80px -30px oklch(0.35 0.11 250 / 0.28), 0 12px 32px -12px oklch(0.4 0.02 260 / 0.12);
+  --shadow-btn: 0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 24px -8px oklch(0.4 0.15 250 / 0.55), 0 2px 6px -1px oklch(0.3 0.12 250 / 0.35);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -160,7 +160,7 @@
 .orb-1 {
   width: 520px; height: 520px;
   left: -140px; top: -160px;
-  background: radial-gradient(circle at 30% 30%, oklch(0.72 0.18 150 / 0.6), transparent 70%);
+  background: radial-gradient(circle at 30% 30%, oklch(0.72 0.18 250 / 0.6), transparent 70%);
 }
 .orb-2 {
   width: 620px; height: 620px;
@@ -175,8 +175,8 @@
 .grid-noise {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(oklch(0.5 0.05 150 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.5 0.05 150 / 0.05) 1px, transparent 1px);
+    linear-gradient(oklch(0.5 0.05 250 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.5 0.05 250 / 0.05) 1px, transparent 1px);
   background-size: 42px 42px;
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
 }
@@ -215,7 +215,7 @@
   display: grid; place-items: center;
   background: var(--gradient-brand);
   color: white;
-  box-shadow: 0 8px 20px -8px oklch(0.4 0.15 150 / 0.55), inset 0 1px 0 oklch(1 0 0 / 0.25);
+  box-shadow: 0 8px 20px -8px oklch(0.4 0.15 250 / 0.55), inset 0 1px 0 oklch(1 0 0 / 0.25);
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1; }
 .brand-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
@@ -227,7 +227,7 @@
   padding: 7px 12px;
   border-radius: 999px;
   background: oklch(1 0 0 / 0.7);
-  border: 1px solid oklch(0.55 0.16 150 / 0.2);
+  border: 1px solid oklch(0.55 0.16 250 / 0.2);
   color: var(--brand-strong);
   font-size: 12px; font-weight: 600;
   letter-spacing: 0.02em;
@@ -241,7 +241,7 @@
   line-height: 1.02;
   letter-spacing: -0.035em;
   font-weight: 700;
-  color: oklch(0.16 0.02 160);
+  color: oklch(0.16 0.02 260);
   margin: 0;
 }
 
@@ -259,12 +259,12 @@
 .hero-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 12px; }
 .hero-list li {
   display: flex; align-items: center; gap: 12px;
-  font-size: 14.5px; color: oklch(0.32 0.02 160);
+  font-size: 14.5px; color: oklch(0.32 0.02 260);
 }
 .hero-list .dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--brand);
-  box-shadow: 0 0 0 4px oklch(0.55 0.16 150 / 0.12);
+  box-shadow: 0 0 0 4px oklch(0.55 0.16 250 / 0.12);
   flex-shrink: 0;
 }
 
@@ -297,7 +297,7 @@
   position: absolute; inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(180deg, oklch(0.6 0.12 150 / 0.35), oklch(0.6 0.02 150 / 0));
+  background: linear-gradient(180deg, oklch(0.6 0.12 250 / 0.35), oklch(0.6 0.02 250 / 0));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
@@ -309,9 +309,9 @@
   width: 52px; height: 52px;
   border-radius: 16px;
   display: grid; place-items: center;
-  background: linear-gradient(180deg, oklch(0.96 0.05 150), oklch(0.92 0.06 150));
+  background: linear-gradient(180deg, oklch(0.96 0.05 250), oklch(0.92 0.06 250));
   color: var(--brand-strong);
-  border: 1px solid oklch(0.55 0.16 150 / 0.18);
+  border: 1px solid oklch(0.55 0.16 250 / 0.18);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9);
 }
 .card-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: var(--foreground); }
@@ -321,7 +321,7 @@
 
 .field-group { display: flex; flex-direction: column; gap: 8px; }
 .field-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.field-label-row label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: oklch(0.28 0.02 160); text-transform: none; }
+.field-label-row label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; color: oklch(0.28 0.02 260); text-transform: none; }
 
 .field {
   position: relative;
@@ -329,15 +329,15 @@
   height: 46px;
   padding: 0 14px 0 42px;
   border-radius: 12px;
-  background: oklch(0.985 0.006 150);
-  border: 1px solid oklch(0.9 0.01 150);
+  background: oklch(0.985 0.006 250);
+  border: 1px solid oklch(0.9 0.01 250);
   transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
-.field:hover { border-color: oklch(0.82 0.03 150); }
+.field:hover { border-color: oklch(0.82 0.03 250); }
 .field:focus-within {
   background: oklch(1 0 0);
-  border-color: oklch(0.55 0.16 150 / 0.6);
-  box-shadow: 0 0 0 4px oklch(0.55 0.16 150 / 0.14);
+  border-color: oklch(0.55 0.16 250 / 0.6);
+  box-shadow: 0 0 0 4px oklch(0.55 0.16 250 / 0.14);
 }
 .field-icon { position: absolute; left: 14px; color: var(--muted-foreground); }
 .field:focus-within .field-icon { color: var(--brand-strong); }
@@ -349,7 +349,7 @@
   font-size: 14.5px;
   color: var(--foreground);
 }
-.field input::placeholder { color: oklch(0.6 0.02 160); }
+.field input::placeholder { color: oklch(0.6 0.02 260); }
 .field-toggle {
   display: grid; place-items: center;
   width: 32px; height: 32px; margin-right: -6px;
@@ -358,7 +358,7 @@
   color: var(--muted-foreground);
   transition: background .15s ease, color .15s ease;
 }
-.field-toggle:hover { background: oklch(0.94 0.01 150); color: var(--foreground); }
+.field-toggle:hover { background: oklch(0.94 0.01 250); color: var(--foreground); }
 
 .link-muted { font-size: 12.5px; color: var(--brand-strong); font-weight: 600; text-decoration: none; transition: color .15s ease; }
 .link-muted:hover { color: var(--primary-deep); text-decoration: underline; text-underline-offset: 3px; }
@@ -394,7 +394,7 @@
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 1px 0 oklch(1 0 0 / 0.25) inset, 0 14px 30px -10px oklch(0.4 0.15 150 / 0.6);
+  box-shadow: 0 1px 0 oklch(1 0 0 / 0.25) inset, 0 14px 30px -10px oklch(0.4 0.15 250 / 0.6);
 }
 .btn-primary:hover:not(:disabled)::after { transform: translateX(120%); }
 .btn-primary:active:not(:disabled) { transform: translateY(0); }
@@ -411,7 +411,7 @@
 }
 .divider::before, .divider::after {
   content: ""; flex: 1; height: 1px;
-  background: linear-gradient(90deg, transparent, oklch(0.85 0.01 150), transparent);
+  background: linear-gradient(90deg, transparent, oklch(0.85 0.01 250), transparent);
 }
 .divider span { padding: 0 12px; }
 
@@ -420,13 +420,13 @@
   height: 46px; padding: 0 20px;
   border-radius: 12px;
   background: oklch(1 0 0);
-  border: 1px solid oklch(0.55 0.16 150 / 0.35);
+  border: 1px solid oklch(0.55 0.16 250 / 0.35);
   color: var(--brand-strong);
   font: inherit; font-size: 14.5px; font-weight: 600;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
-.btn-ghost:hover { background: oklch(0.97 0.03 150); border-color: oklch(0.55 0.16 150 / 0.6); }
+.btn-ghost:hover { background: oklch(0.97 0.03 250); border-color: oklch(0.55 0.16 250 / 0.6); }
 .btn-ghost:active { transform: translateY(1px); }
 
 .card-foot { text-align: center; font-size: 13.5px; color: var(--muted-foreground); margin: 4px 0 0; }
@@ -454,11 +454,11 @@
   font-weight: 400;
   background-image: linear-gradient(
     115deg,
-    oklch(0.55 0.17 150) 0%,
-    oklch(0.55 0.17 150) 35%,
+    oklch(0.55 0.17 250) 0%,
+    oklch(0.55 0.17 250) 35%,
     #a7f3d0 50%,
-    oklch(0.55 0.17 150) 65%,
-    oklch(0.55 0.17 150) 100%
+    oklch(0.55 0.17 250) 65%,
+    oklch(0.55 0.17 250) 100%
   );
   background-size: 250% auto;
   -webkit-background-clip: text;

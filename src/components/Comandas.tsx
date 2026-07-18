@@ -59,10 +59,10 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
             <Search className="absolute left-3.5 top-2.5 text-[var(--text-muted)]" size={15} />
             <input
               type="text"
-              placeholder="Nº, mesa ou garçom..."
+              placeholder="Nº, mesa ou funcionário..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-amber-500"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
             />
           </div>
 
@@ -72,7 +72,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                 filter === 'all'
-                  ? 'bg-amber-500 border-amber-500 text-[#090D14]'
+                  ? 'bg-sky-500 border-sky-500 text-[#090D14]'
                   : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -92,7 +92,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               onClick={() => setFilter('aberta')}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                 filter === 'aberta'
-                  ? 'bg-emerald-500 border-emerald-500 text-[#090D14]'
+                  ? 'bg-sky-500 border-sky-500 text-[#090D14]'
                   : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -108,7 +108,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
             <span>Livre</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
             <span>Aberta</span>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
 
             let cardStyles = 'bg-[var(--bg-card)] border-[var(--bg-hover)] text-[#484F58] hover:border-[#8B949E]/40 hover:text-[var(--text-muted)]';
             if (open) {
-              cardStyles = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/5';
+              cardStyles = 'bg-sky-500/10 border-sky-500/30 text-sky-500 hover:border-sky-500 hover:shadow-lg hover:shadow-sky-500/5';
             }
 
             return (
@@ -141,21 +141,21 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               >
                 {/* Badge for total items count inside comanda */}
                 {open && totalItems > 0 && (
-                  <span className={`absolute top-1.5 right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-emerald-500 text-[#090D14]`}>
+                  <span className={`absolute top-1.5 right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-sky-500 text-[#090D14]`}>
                     {totalItems}
                   </span>
                 )}
 
-                <span className="text-xl font-extrabold tracking-tight block">
+                <span className="text-xl font-extrabold tracking-tight block leading-none">
                   {c.id}
                 </span>
 
                 {open && (
                   <>
-                    <span className="text-[9px] opacity-90 truncate max-w-full text-center font-semibold mt-0.5">
+                    <span className="text-[9px] opacity-90 truncate max-w-full text-center font-semibold mt-1">
                       {c.mesa || '—'}
                     </span>
-                    <span className="text-[8px] font-mono opacity-70 mt-1">
+                    <span className="text-xs font-mono font-bold text-sky-500 mt-0.5">
                       {getElapsedStr(c.openedAt)}
                     </span>
                     {totalVal > 0 && (

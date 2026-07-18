@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Garcom } from './types';
+import { Sun, Moon, Settings } from 'lucide-react';
+import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Funcionario } from './types';
 import { supabase } from './supabaseClient';
 
 // Components
@@ -11,6 +12,7 @@ import Produtos from './components/Produtos';
 import Categorias from './components/Categorias';
 import Historico from './components/Historico';
 import Funcionarios from './components/Funcionarios';
+import Configuracoes from './components/Configuracoes';
 import ComandaModal from './components/ComandaModal';
 import PaymentModal from './components/PaymentModal';
 
@@ -72,6 +74,17 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark');
+  });
+
+  const toggleTheme = () => {
+    const isDarkNow = document.documentElement.classList.toggle('dark');
+    setIsDark(isDarkNow);
+    localStorage.setItem('servio_theme', isDarkNow ? 'dark' : 'light');
+  };
+
   
   // Modals state
   const [activeComandaId, setActiveComandaId] = useState<number | null>(null);
@@ -355,8 +368,8 @@ export default function App() {
   };
 
   // Funcionarios CRUD
-  const handleCreateGarcom = (g: Omit<Garcom, 'id'>) => {
-    const newGarcom: Garcom = {
+  const handleCreateFuncionario = (g: Omit<Funcionario, 'id'>) => {
+    const newGarcom: Funcionario = {
       ...g,
       id: '_' + Math.random().toString(36).substring(2, 9),
     };
@@ -366,14 +379,14 @@ export default function App() {
     }));
   };
 
-  const handleUpdateGarcom = (id: string, updatedFields: Partial<Garcom>) => {
+  const handleUpdateFuncionario = (id: string, updatedFields: Partial<Funcionario>) => {
     setState(prev => ({
       ...prev,
       funcionarios: (prev.funcionarios || []).map(g => g.id === id ? { ...g, ...updatedFields } : g)
     }));
   };
 
-  const handleDeleteGarcom = (id: string) => {
+  const handleDeleteFuncionario = (id: string) => {
     setState(prev => ({
       ...prev,
       funcionarios: (prev.funcionarios || []).filter(g => g.id !== id)
@@ -479,23 +492,26 @@ export default function App() {
           <Funcionarios
             funcionarios={state.funcionarios || []}
             history={state.history}
-            onCreateGarcom={handleCreateGarcom}
-            onUpdateGarcom={handleUpdateGarcom}
-            onDeleteGarcom={handleDeleteGarcom}
+            onCreateFuncionario={handleCreateFuncionario}
+            onUpdateFuncionario={handleUpdateFuncionario}
+            onDeleteFuncionario={handleDeleteFuncionario}
           />
         );
+      case 'configuracoes':
+        return <Configuracoes rname={state.rname} onUpdateRname={(val) => setState(prev => ({...prev, rname: val}))} isDark={isDark} toggleTheme={toggleTheme} />;
       default:
         return <div className="text-center py-12">View não implementada.</div>;
     }
   };
 
   const VIEW_TITLES: Record<string, string> = {
-    dashboard: 'Painel Geral',
-    comandas: 'Gestão de Comandas',
-    produtos: 'Cardápio / Produtos',
-    categorias: 'Categorias de Consumo',
+    dashboard: 'Dashboard',
+    comandas: 'Comandas',
+    produtos: 'Produtos',
+    categorias: 'Categorias',
     funcionarios: 'Funcionários',
-    historico: 'Relatórios & Histórico'
+    historico: 'Histórico',
+    configuracoes: 'Configurações'
   };
 
   return (
@@ -510,12 +526,12 @@ export default function App() {
       <aside className="hidden md:flex w-56 bg-[var(--bg-card)] border-r border-[var(--border-color)] flex-col justify-between shrink-0">
         <div>
           {/* Logo container */}
-          <div className="p-5 border-b border-zinc-300 bg-zinc-200 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center shadow-lg">
-              <ChefHat className="text-amber-500" size={16} />
+          <div className="p-5 border-b border-[var(--border-color)] bg-[var(--bg-panel)] flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shadow-lg">
+              <ChefHat className="text-[#0D1117]" size={16} />
             </div>
             <div>
-              <span className="text-lg font-serif tracking-tight text-amber-600">Servio</span>
+              <span className="text-lg font-serif tracking-tight text-sky-600">Servio</span>
               <span className="block text-[8px] text-zinc-600 tracking-[0.15em] uppercase font-bold">Gestão</span>
             </div>
           </div>
@@ -528,7 +544,7 @@ export default function App() {
               onClick={() => setCurrentView('dashboard')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'dashboard'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -540,7 +556,7 @@ export default function App() {
               onClick={() => setCurrentView('comandas')}
               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'comandas'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -561,7 +577,7 @@ export default function App() {
               onClick={() => setCurrentView('produtos')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'produtos'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -573,7 +589,7 @@ export default function App() {
               onClick={() => setCurrentView('categorias')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'categorias'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -585,12 +601,12 @@ export default function App() {
               onClick={() => setCurrentView('funcionarios')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'funcionarios'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
               <Users size={15} />
-              <span>Garçons</span>
+              <span>Funcionários</span>
             </button>
 
             <span className="block px-3 pt-4 text-[10px] font-bold text-[#484F58] uppercase tracking-widest mb-2">Relatórios</span>
@@ -599,7 +615,7 @@ export default function App() {
               onClick={() => setCurrentView('historico')}
               className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'historico'
-                  ? 'bg-amber-500/10 text-amber-500 font-bold'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
               }`}
             >
@@ -613,7 +629,7 @@ export default function App() {
         <div className="p-4 border-t border-[var(--border-color)] space-y-3 bg-[var(--bg-panel)]">
           {/* Restaurant Name editing inline */}
           <div className="flex items-center gap-1.5 p-2 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg">
-            <Store size={14} className="text-amber-500 shrink-0" />
+            <Store size={14} className="text-sky-500 shrink-0" />
             <input
               type="text"
               value={state.rname}
@@ -621,6 +637,13 @@ export default function App() {
               placeholder="Nome do restaurante..."
               className="bg-transparent text-xs text-[var(--text-main)] font-medium outline-none border-none w-full placeholder-[#484F58] focus:ring-0"
             />
+            <button
+              onClick={() => setCurrentView('configuracoes')}
+              className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer ml-1"
+              title="Configurações"
+            >
+              <Settings size={16} />
+            </button>
           </div>
 
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
@@ -658,10 +681,10 @@ export default function App() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
                       <ChefHat className="text-[#0D1117]" size={18} />
                     </div>
-                    <span className="text-lg font-black text-[#E8A200]">Servio</span>
+                    <span className="text-lg font-black text-sky-500">Servio</span>
                   </div>
                   <button onClick={() => setMobileMenuOpen(false)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer">
                     <X size={20} />
@@ -672,7 +695,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('dashboard'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'dashboard' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <LayoutDashboard size={15} />
@@ -682,7 +705,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('comandas'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'comandas' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'comandas' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -697,7 +720,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('produtos'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'produtos' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'produtos' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <UtensilsCrossed size={15} />
@@ -707,7 +730,7 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('categorias'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'categorias' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'categorias' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <Tags size={15} />
@@ -717,17 +740,17 @@ export default function App() {
                   <button
                     onClick={() => { setCurrentView('funcionarios'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'funcionarios' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'funcionarios' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <Users size={15} />
-                    <span>Garçons</span>
+                    <span>Funcionários</span>
                   </button>
 
                   <button
                     onClick={() => { setCurrentView('historico'); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
-                      currentView === 'historico' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'text-[var(--text-muted)]'
+                      currentView === 'historico' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <History size={15} />
@@ -738,17 +761,24 @@ export default function App() {
 
               <div className="p-4 border-t border-[var(--border-color)] space-y-3 bg-[var(--bg-panel)] rounded-lg">
                 <div className="flex items-center gap-1.5 p-1.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-md">
-                  <Store size={13} className="text-amber-500" />
+                  <Store size={13} className="text-sky-500 shrink-0" />
                   <input
                     type="text"
                     value={state.rname}
                     onChange={(e) => setState(prev => ({ ...prev, rname: e.target.value }))}
-                    className="bg-transparent text-[11px] text-[var(--text-main)] outline-none border-none w-full"
+                    className="bg-transparent text-[11px] text-[var(--text-main)] outline-none border-none w-full min-w-0"
                   />
+                  <button
+                    onClick={() => { setCurrentView('configuracoes'); setMobileMenuOpen(false); }}
+                    className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer ml-1 shrink-0"
+                    title="Configurações"
+                  >
+                    <Settings size={16} />
+                  </button>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-[var(--text-muted)]">
                   <span>v1.0 · Servio</span>
-                  <button onClick={handleLogout} className="text-red-400 font-bold cursor-pointer">Sair</button>
+                  <button onClick={handleLogout} className="text-red-400 font-bold flex items-center gap-1 cursor-pointer"><LogOut size={12}/>Sair</button>
                 </div>
               </div>
             </motion.div>
@@ -759,23 +789,30 @@ export default function App() {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top bar header */}
-        <header className="h-14 bg-zinc-200 border-b border-zinc-300 flex items-center justify-between px-6 shrink-0 z-10">
+        <header className="h-14 bg-[var(--bg-panel)] border-b border-[var(--border-color)] flex items-center justify-between px-6 shrink-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-1.5 rounded-lg text-zinc-600 hover:text-zinc-900 cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
             >
               <Menu size={20} />
             </button>
-            <h2 className="text-xs font-bold text-zinc-800 tracking-widest uppercase">
+            <h2 className="text-xs font-bold text-[var(--text-main)] tracking-widest uppercase">
               {VIEW_TITLES[currentView] || currentView}
             </h2>
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
+              title="Alternar Tema"
+            >
+              {isDark ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
             {/* Clock display */}
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/80 border border-zinc-300 rounded-lg text-xs font-mono text-zinc-700">
-              <Clock size={13} className="text-amber-600" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg text-xs font-mono text-[var(--text-main)]">
+              <Clock size={13} className="text-sky-500" />
               <span>{currentTime}</span>
             </div>
           </div>
@@ -786,8 +823,8 @@ export default function App() {
           {renderCurrentView()}
         </main>
 
-        <footer className="h-10 bg-[#080808] border-t border-zinc-900 flex items-center justify-center text-[9px] text-zinc-600 tracking-[0.25em] shrink-0">
-          Sistema Servio • 🟢 Conectado • Sincronizado
+        <footer className="h-10 bg-[var(--bg-panel)] border-t border-[var(--border-color)] flex items-center justify-center text-[9px] text-[var(--text-muted)] tracking-[0.25em] shrink-0">
+          Sistema Servio • Conectado
         </footer>
       </div>
 

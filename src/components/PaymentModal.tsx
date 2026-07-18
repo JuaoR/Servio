@@ -20,7 +20,7 @@ interface PaymentModalProps {
 const PAYMENT_METHODS = [
   { key: 'pix', label: 'Pix', icon: <PixIcon />, color: 'text-[#32BCAD] bg-[#32BCAD]/10 border-[#32BCAD]/20' },
   { key: 'dinheiro', label: 'Dinheiro', icon: '💵', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { key: 'credito', label: 'C. Crédito', icon: '💳', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  { key: 'credito', label: 'C. Crédito', icon: '💳', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
   { key: 'debito', label: 'C. Débito', icon: '🏧', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
 ];
 
@@ -71,7 +71,7 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
             <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1">
               Total a Pagar
             </span>
-            <span className="text-3xl font-black text-amber-500">
+            <span className="text-3xl font-black text-sky-500">
               R$ {totalVal.toFixed(2).replace('.', ',')}
             </span>
             {comanda.mesa && (
@@ -96,7 +96,7 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
                     onClick={() => setMethod(m.key)}
                     className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                       selected
-                        ? 'bg-amber-500/10 border-amber-500 text-amber-500'
+                        ? 'bg-sky-500/10 border-sky-500 text-sky-500'
                         : 'bg-[var(--bg-base)] border-[var(--border-color)] text-[var(--text-muted)] hover:border-[#484F58] hover:text-[var(--text-main)]'
                     }`}
                   >
@@ -126,7 +126,7 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
                   value={received}
                   onChange={(e) => setReceived(e.target.value)}
                   placeholder={totalVal.toFixed(2)}
-                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-amber-500"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3.5 py-2 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
 
