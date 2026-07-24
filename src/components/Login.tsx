@@ -71,6 +71,24 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
     }
   }, [isRecoveryMode]);
 
+  // Limpa os campos ao alternar entre as telas
+  useEffect(() => {
+    setEmail('');
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowConfirmPassword(false);
+    setHasAttemptedSubmit(false);
+    setRestaurantName('');
+    setOwnerName('');
+    setIdentifier('');
+    setError(null);
+    setSuccess(null);
+    setIsEmployeeLogin(false);
+    setIdentifierStatus('idle');
+    setEmailStatus('idle');
+  }, [view]);
+
   // Debounce identifier check for signup
   useEffect(() => {
     if (view !== 'signup') return;
@@ -394,6 +412,10 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
 
     // 4. PASSWORD RESET FLOW
     if (view === 'reset') {
+      setHasAttemptedSubmit(true);
+      if (password !== confirmPassword) {
+        return;
+      }
       if (!isPasswordValid) {
         setError('A nova senha não atende aos requisitos de segurança.');
         return;
@@ -797,15 +819,15 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                   </div>
                 )}
 
-                {view === 'signup' && (
+                {(view === 'signup' || view === 'reset') && (
                   <>
                     <div className="group">
                       <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1 group-focus-within:text-blue-600 transition-colors">
                         Confirmar senha
                       </label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-400">
-                          <Lock size={16} />
+                        <div className={`absolute inset-y-0 left-0 flex items-center pointer-events-none text-zinc-400 ${view === 'signup' ? 'pl-3' : 'pl-4'}`}>
+                          <Lock size={view === 'signup' ? 16 : 18} />
                         </div>
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
@@ -814,15 +836,15 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirmar sua senha"
-                          className={`w-full pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px] bg-white border ${(confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all text-[13px] shadow-sm`}
+                          className={`w-full bg-white border ${(confirmPassword.length > 0 && confirmPassword !== password) || (hasAttemptedSubmit && confirmPassword !== password) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600'} rounded-lg text-zinc-800 placeholder-zinc-400 outline-none focus:ring-1 disabled:bg-zinc-50 disabled:text-zinc-500 transition-all shadow-sm ${view === 'signup' ? 'pl-9 pr-10 py-1.5 sm:py-1.5 text-[12px]' : 'pl-11 pr-12 py-3.5 text-sm'}`}
                         />
                         <button
                           type="button"
                           disabled={isLoading}
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors"
+                          className={`absolute inset-y-0 right-0 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors ${view === 'signup' ? 'pr-3' : 'pr-4'}`}
                         >
-                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          {showConfirmPassword ? <EyeOff size={view === 'signup' ? 16 : 18} /> : <Eye size={view === 'signup' ? 16 : 18} />}
                         </button>
                       </div>
                     </div>
@@ -832,25 +854,27 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                       </div>
                     )}
 
-                    <div className="flex flex-col mt-2">
-                      <div className="flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          id="terms"
-                          checked={agreedToTerms}
-                          onChange={(e) => { setAgreedToTerms(e.target.checked); if (hasAttemptedSubmit) setHasAttemptedSubmit(false); }}
-                          className="mt-0.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-600"
-                        />
-                        <label htmlFor="terms" className="text-[11px] text-zinc-600 leading-tight">
-                          Ao criar conta, concordo com os <a href="#" className="font-semibold text-zinc-800 hover:underline">Termos de uso</a> e <a href="#" className="font-semibold text-zinc-800 hover:underline">Política de privacidade</a>
-                        </label>
-                      </div>
-                      {(hasAttemptedSubmit && !agreedToTerms) && (
-                        <div className="pl-5 mt-0.5">
-                          <span className="text-[10px] text-red-500 font-medium leading-none">Você precisa concordar com os Termos.</span>
+                    {view === 'signup' && (
+                      <div className="flex flex-col mt-2">
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            id="terms"
+                            checked={agreedToTerms}
+                            onChange={(e) => { setAgreedToTerms(e.target.checked); if (hasAttemptedSubmit) setHasAttemptedSubmit(false); }}
+                            className="mt-0.5 rounded border-zinc-300 text-blue-600 focus:ring-blue-600"
+                          />
+                          <label htmlFor="terms" className="text-[11px] text-zinc-600 leading-tight">
+                            Ao criar conta, concordo com os <a href="#" className="font-semibold text-zinc-800 hover:underline">Termos de uso</a> e <a href="#" className="font-semibold text-zinc-800 hover:underline">Política de privacidade</a>
+                          </label>
                         </div>
-                      )}
-                    </div>
+                        {(hasAttemptedSubmit && !agreedToTerms) && (
+                          <div className="pl-5 mt-0.5">
+                            <span className="text-[10px] text-red-500 font-medium leading-none">Você precisa concordar com os Termos.</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 

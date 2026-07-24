@@ -634,10 +634,10 @@ export default function App() {
             />
             <button
               onClick={() => setCurrentView('configuracoes')}
-              className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer ml-1"
+              className="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white cursor-pointer ml-1.5 transition-all shadow-sm active:scale-95 shrink-0"
               title="Configurações"
             >
-              <Settings size={16} />
+              <Settings size={18} />
             </button>
           </div>
 
@@ -763,10 +763,10 @@ export default function App() {
                   />
                   <button
                     onClick={() => { setCurrentView('configuracoes'); setMobileMenuOpen(false); }}
-                    className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer ml-1 shrink-0"
+                    className="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white cursor-pointer ml-1.5 shrink-0 transition-all shadow-sm active:scale-95"
                     title="Configurações"
                   >
-                    <Settings size={16} />
+                    <Settings size={18} />
                   </button>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-[var(--text-muted)]">

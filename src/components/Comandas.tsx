@@ -155,11 +155,11 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
                     <span className="text-[9px] opacity-90 truncate max-w-full text-center font-semibold mt-1">
                       {c.mesa || '—'}
                     </span>
-                    <span className="text-xs font-mono font-bold text-sky-500 mt-0.5">
+                    <span className="text-xs font-mono font-black text-sky-500 mt-0.5">
                       {getElapsedStr(c.openedAt)}
                     </span>
                     {totalVal > 0 && (
-                      <span className="text-[10px] font-bold text-[var(--text-main)] mt-1.5">
+                      <span className="text-xs font-extrabold text-[#10B981] mt-1.5">
                         R${totalVal.toFixed(0)}
                       </span>
                     )}

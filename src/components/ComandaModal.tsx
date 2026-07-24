@@ -212,7 +212,7 @@ export default function ComandaModal({
         className="w-full max-w-4xl h-[90vh] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[#1c2128]">
+        <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-panel)]">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-sky-500">#{id}</span>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -238,7 +238,7 @@ export default function ComandaModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-[#30363D] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
+            className="p-1 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -372,9 +372,9 @@ export default function ComandaModal({
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => handleToggleNote(item)}
-                            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline cursor-pointer"
+                            className="text-xs font-semibold text-sky-600 hover:text-sky-700 underline cursor-pointer"
                           >
-                            Obs
+                            {item.note ? 'Editar observação' : 'Adicionar observação'}
                           </button>
                           <button
                             onClick={() => handleRemoveItem(item.id)}
@@ -478,11 +478,11 @@ export default function ComandaModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[var(--border-color)] bg-[#1c2128] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+        <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-panel)] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-4">
             <div>
               <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Subtotal</span>
-              <span className="text-xs text-[var(--text-main)]">R$ {subTotal.toFixed(2)}</span>
+              <span className="text-sm font-bold text-[var(--text-main)]">R$ {subTotal.toFixed(2)}</span>
             </div>
 
             <div>
@@ -501,7 +501,7 @@ export default function ComandaModal({
 
             <div>
               <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Total</span>
-              <span className="text-lg font-black text-sky-500">R$ {totalVal.toFixed(2)}</span>
+              <span className="text-xl font-extrabold text-sky-500">R$ {totalVal.toFixed(2)}</span>
             </div>
           </div>
 
@@ -520,7 +520,7 @@ export default function ComandaModal({
                 className="flex-1 sm:flex-initial px-5 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-[var(--text-main)] text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <CheckSquare size={14} />
-                <span>Fechar &amp; Pagar</span>
+                <span>Fechar e cobrar</span>
               </button>
             )}
           </div>
