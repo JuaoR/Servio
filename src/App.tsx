@@ -673,9 +673,9 @@ export default function App() {
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
-              initial={{ translateX: '-100%' }}
-              animate={{ translateX: 0 }}
-              exit={{ translateX: '-100%' }}
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
               className="relative w-64 bg-[var(--bg-card)] border-r border-[var(--border-color)] p-5 flex flex-col justify-between h-full z-10"
             >
@@ -786,7 +786,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* MAIN CONTAINER */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top bar header */}
         <header className="h-14 mobile-header bg-[var(--bg-panel)] border-b border-[var(--border-color)] flex items-center justify-between px-6 shrink-0 z-10">
           <div className="flex items-center gap-3">
