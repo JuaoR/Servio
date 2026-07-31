@@ -122,7 +122,8 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
 
       {/* Products Table Card */}
       <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop: tabela */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-[var(--border-color)]">
@@ -199,15 +200,73 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
             </tbody>
           </table>
         </div>
+
+        {/* Mobile: lista de cards */}
+        <div className="sm:hidden p-3 space-y-2">
+          {filtered.length === 0 ? (
+            <div className="py-12 text-center text-[#484F58]">
+              <Coffee className="mx-auto mb-2" size={36} />
+              <p className="text-sm">Nenhum produto cadastrado.</p>
+            </div>
+          ) : (
+            filtered.map(p => {
+              const catInfo = getCategory(p.cid);
+              return (
+                <div key={p.id} className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[var(--text-main)] text-base">{p.name}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border"
+                          style={{ color: catInfo.color, backgroundColor: `${catInfo.color}12`, borderColor: `${catInfo.color}22` }}
+                        >
+                          {catInfo.name}
+                        </span>
+                        <span
+                          onClick={() => handleToggleAvail(p)}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border cursor-pointer select-none ${
+                            p.avail
+                              ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                              : 'text-red-400 bg-red-500/10 border-red-500/20'
+                          }`}
+                        >
+                          {p.avail ? '● Disponível' : '○ Indisponível'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="text-lg font-black text-sky-500">R$ {p.price.toFixed(2).replace('.', ',')}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleOpenEdit(p)}
+                          className="p-2.5 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-muted)] cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Modal: Add/Edit Product */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full sm:max-w-sm bg-[var(--bg-card)] border border-[var(--border-color)] sm:rounded-xl rounded-t-2xl overflow-hidden shadow-2xl"
           >
             <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
               <h3 className="font-bold text-[var(--text-main)] text-base">
@@ -215,7 +274,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+                className="text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer p-2 rounded-lg hover:bg-[var(--bg-hover)]"
               >
                 ✕
               </button>

@@ -139,7 +139,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Comandas */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col h-[400px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col md:h-[400px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
@@ -201,7 +201,7 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col h-[400px]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col md:h-[400px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight">Últimas Vendas Fechadas</h2>
             <button
@@ -220,38 +220,60 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
                 <p className="text-sm">Nenhuma venda registrada hoje.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-[var(--border-color)]">
-                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID</th>
-                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
-                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Pagamento</th>
-                      <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentHistory.map(h => {
-                      const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10' };
-                      return (
-                        <tr key={h.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors">
-                          <td className="py-2.5 font-semibold text-[var(--text-main)]">#{h.cmdId}</td>
-                          <td className="py-2.5 text-[var(--text-muted)] truncate max-w-[100px]">{h.mesa || '—'}</td>
-                          <td className="py-2.5">
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${pay.color}`}>
-                              <span>{pay.ic}</span>
-                              <span>{pay.lb}</span>
-                            </span>
-                          </td>
-                          <td className="py-2.5 font-bold text-[var(--text-main)] text-right">{formatCurrency(h.total)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* Desktop: tabela */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-[var(--border-color)]">
+                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID</th>
+                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
+                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Pagamento</th>
+                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentHistory.map(h => {
+                        const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10' };
+                        return (
+                          <tr key={h.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors">
+                            <td className="py-2.5 font-semibold text-[var(--text-main)]">#{h.cmdId}</td>
+                            <td className="py-2.5 text-[var(--text-muted)] truncate max-w-[100px]">{h.mesa || '—'}</td>
+                            <td className="py-2.5">
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${pay.color}`}>
+                                <span>{pay.ic}</span>
+                                <span>{pay.lb}</span>
+                              </span>
+                            </td>
+                            <td className="py-2.5 font-bold text-[var(--text-main)] text-right">{formatCurrency(h.total)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile: lista de cards */}
+                <div className="sm:hidden space-y-2">
+                  {recentHistory.map(h => {
+                    const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10 border-gray-500/20' };
+                    return (
+                      <div key={h.id} className="flex items-center justify-between p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold text-[var(--text-main)]">#{h.cmdId} {h.mesa ? `· ${h.mesa}` : ''}</span>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border w-fit ${pay.color}`}>
+                            <span>{pay.ic}</span>
+                            <span>{pay.lb}</span>
+                          </span>
+                        </div>
+                        <span className="text-base font-extrabold text-[var(--text-main)]">{formatCurrency(h.total)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
+
         </div>
       </div>
     </div>

@@ -90,7 +90,8 @@ export default function Categorias({ categories, products, onCreateCategory, onU
 
       {/* Categories Grid */}
       <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop: tabela */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-[var(--border-color)]">
@@ -167,15 +168,57 @@ export default function Categorias({ categories, products, onCreateCategory, onU
             </tbody>
           </table>
         </div>
+
+        {/* Mobile: cards */}
+        <div className="sm:hidden p-3 space-y-2">
+          {categories.length === 0 ? (
+            <div className="py-12 text-center text-[#484F58]">
+              <Tag className="mx-auto mb-2" size={36} />
+              <p className="text-sm">Nenhuma categoria cadastrada.</p>
+            </div>
+          ) : (
+            categories.map(c => {
+              const prodCount = products.filter(p => p.cid === c.id).length;
+              return (
+                <div key={c.id} className="flex items-center gap-3 p-3.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl">
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center border flex-shrink-0"
+                    style={{ color: c.color, backgroundColor: `${c.color}15`, borderColor: `${c.color}35` }}
+                  >
+                    <LucideIcon name={c.icon} size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[var(--text-main)] text-sm">{c.name}</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{prodCount} produto(s) · <span className="font-mono">{c.color}</span></p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleOpenEdit(c)}
+                      className="p-2.5 rounded-xl bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-muted)] min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Modal: Add/Edit Category */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full sm:max-w-sm bg-[var(--bg-card)] border border-[var(--border-color)] sm:rounded-xl rounded-t-2xl overflow-hidden shadow-2xl"
           >
             <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
               <h3 className="font-bold text-[var(--text-main)] text-base">

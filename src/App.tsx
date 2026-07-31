@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sun, Moon, Settings } from 'lucide-react';
 import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Funcionario } from './types';
@@ -514,6 +514,12 @@ export default function App() {
     configuracoes: 'Configurações'
   };
 
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
+
+  // Navegação mobile: quais views ficam na bottom nav
+  const BOTTOM_NAV_VIEWS = ['dashboard', 'comandas', 'produtos', 'historico'];
+  const isMoreActive = !BOTTOM_NAV_VIEWS.includes(currentView);
+
   return (
     <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-main)] flex flex-col overflow-hidden relative">
       {/* Dynamic Restaurant Chalkboard Background Texture */}
@@ -782,20 +788,23 @@ export default function App() {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         {/* Top bar header */}
-        <header className="h-14 bg-[var(--bg-panel)] border-b border-[var(--border-color)] flex items-center justify-between px-6 shrink-0 z-10">
+        <header className="h-14 mobile-header bg-[var(--bg-panel)] border-b border-[var(--border-color)] flex items-center justify-between px-6 shrink-0 z-10">
           <div className="flex items-center gap-3">
+            {/* Hamburger menu — só desktop (md+), no mobile usamos bottom nav */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+              className="hidden md:block p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
             >
               <Menu size={20} />
             </button>
+            {/* Logo mobile */}
+            <img src="/images/logo.png" alt="Servio" className="md:hidden w-7 h-7 object-contain" />
             <h2 className="text-xs font-bold text-[var(--text-main)] tracking-widest uppercase">
               {VIEW_TITLES[currentView] || currentView}
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
               className="w-8 h-8 rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
@@ -803,8 +812,8 @@ export default function App() {
             >
               {isDark ? <Moon size={16} /> : <Sun size={16} />}
             </button>
-            {/* Clock display */}
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg text-xs font-mono text-[var(--text-main)]">
+            {/* Clock display — oculto no mobile */}
+            <div className="mobile-hide flex items-center gap-1.5 px-3 py-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg text-xs font-mono text-[var(--text-main)]">
               <Clock size={13} className="text-sky-500" />
               <span>{currentTime}</span>
             </div>
@@ -812,14 +821,141 @@ export default function App() {
         </header>
 
         {/* Dynamic Inner Content scroll viewport */}
-        <main className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+        <main className="flex-1 overflow-y-auto p-6 mobile-main-content scrollbar-thin">
           {renderCurrentView()}
         </main>
 
-        <footer className="h-10 bg-[var(--bg-panel)] border-t border-[var(--border-color)] flex items-center justify-center text-[9px] text-[var(--text-muted)] tracking-[0.25em] shrink-0">
+        <footer className="hidden md:flex h-10 bg-[var(--bg-panel)] border-t border-[var(--border-color)] items-center justify-center text-[9px] text-[var(--text-muted)] tracking-[0.25em] shrink-0">
           Sistema Servio • Conectado
         </footer>
       </div>
+
+      {/* ========== BOTTOM NAVIGATION (mobile only) ========== */}
+      <nav className="mobile-bottom-nav md:hidden" aria-label="Navegação principal">
+        {/* Dashboard */}
+        <button
+          onClick={() => setCurrentView('dashboard')}
+          className={`mobile-bottom-nav-btn ${currentView === 'dashboard' ? 'active' : ''}`}
+        >
+          <LayoutDashboard size={20} />
+          <span>Dashboard</span>
+        </button>
+
+        {/* Comandas */}
+        <button
+          onClick={() => setCurrentView('comandas')}
+          className={`mobile-bottom-nav-btn ${currentView === 'comandas' ? 'active' : ''}`}
+        >
+          <ClipboardList size={20} />
+          <span>Comandas</span>
+          {activeComandasCount > 0 && (
+            <span className="mobile-bottom-nav-badge">{activeComandasCount}</span>
+          )}
+        </button>
+
+        {/* Produtos */}
+        <button
+          onClick={() => setCurrentView('produtos')}
+          className={`mobile-bottom-nav-btn ${currentView === 'produtos' ? 'active' : ''}`}
+        >
+          <UtensilsCrossed size={20} />
+          <span>Produtos</span>
+        </button>
+
+        {/* Histórico */}
+        <button
+          onClick={() => setCurrentView('historico')}
+          className={`mobile-bottom-nav-btn ${currentView === 'historico' ? 'active' : ''}`}
+        >
+          <History size={20} />
+          <span>Histórico</span>
+        </button>
+
+        {/* Mais */}
+        <button
+          onClick={() => setMoreSheetOpen(true)}
+          className={`mobile-bottom-nav-btn ${isMoreActive ? 'active' : ''}`}
+        >
+          <Menu size={20} />
+          <span>Mais</span>
+        </button>
+      </nav>
+
+      {/* ========== MORE SHEET (mobile only) ========== */}
+      <AnimatePresence>
+        {moreSheetOpen && (
+          <div className="mobile-more-sheet md:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mobile-more-sheet-backdrop"
+              onClick={() => setMoreSheetOpen(false)}
+            />
+            <motion.div
+              initial={{ translateY: '100%' }}
+              animate={{ translateY: 0 }}
+              exit={{ translateY: '100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              className="mobile-more-sheet-content"
+            >
+              <div className="mobile-more-sheet-handle" />
+
+              <div className="flex items-center gap-3 px-2 pb-3 mb-2 border-b border-[var(--border-color)]">
+                <img src="/images/logo.png" alt="Servio" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-sm font-bold text-[var(--text-main)] leading-none">{state.rname}</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Servio v1.0</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => { setCurrentView('categorias'); setMoreSheetOpen(false); }}
+                className={`mobile-more-sheet-btn ${currentView === 'categorias' ? 'active' : ''}`}
+              >
+                <span className="icon"><Tags size={18} /></span>
+                <span>Categorias</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('funcionarios'); setMoreSheetOpen(false); }}
+                className={`mobile-more-sheet-btn ${currentView === 'funcionarios' ? 'active' : ''}`}
+              >
+                <span className="icon"><Users size={18} /></span>
+                <span>Funcionários</span>
+              </button>
+
+              <button
+                onClick={() => { setCurrentView('configuracoes'); setMoreSheetOpen(false); }}
+                className={`mobile-more-sheet-btn ${currentView === 'configuracoes' ? 'active' : ''}`}
+              >
+                <span className="icon"><Settings size={18} /></span>
+                <span>Configurações</span>
+              </button>
+
+              <div className="mt-2 pt-2 border-t border-[var(--border-color)] flex items-center justify-between px-2">
+                <span className="text-xs text-[var(--text-muted)]">Tema</span>
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-hover)] rounded-lg text-sm font-semibold text-[var(--text-main)] cursor-pointer"
+                >
+                  {isDark ? <Moon size={15} /> : <Sun size={15} />}
+                  <span>{isDark ? 'Escuro' : 'Claro'}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => { handleLogout(); setMoreSheetOpen(false); }}
+                className="mobile-more-sheet-btn mt-1"
+                style={{ color: '#f87171' }}
+              >
+                <span className="icon" style={{ color: '#f87171' }}><LogOut size={18} /></span>
+                <span>Sair da conta</span>
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* CORE OVERLAY MODALS DISPLAY */}
       <AnimatePresence>

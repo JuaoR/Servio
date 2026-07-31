@@ -52,25 +52,24 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
   return (
     <div className="space-y-4">
       {/* Search and Filters Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Search bar */}
-          <div className="relative w-full sm:w-60">
-            <Search className="absolute left-3.5 top-2.5 text-[var(--text-muted)]" size={15} />
-            <input
-              type="text"
-              placeholder="Nº, mesa ou funcionário..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
-            />
-          </div>
-
+      <div className="flex flex-col gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Nº, mesa ou funcionário..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2.5 text-sm text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
           {/* Filters */}
-          <div className="flex flex-wrap gap-1">
-            <button
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none flex-1">
+              <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
+              className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
                 filter === 'all'
                   ? 'bg-sky-500 border-sky-500 text-[#090D14]'
                   : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -80,7 +79,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
             </button>
             <button
               onClick={() => setFilter('livre')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
+              className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
                 filter === 'livre'
                   ? 'bg-gray-500 border-gray-500 text-[var(--text-main)]'
                   : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -90,7 +89,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
             </button>
             <button
               onClick={() => setFilter('aberta')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
+              className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
                 filter === 'aberta'
                   ? 'bg-sky-500 border-sky-500 text-[#090D14]'
                   : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -99,17 +98,17 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               🟢 Abertas ({counts.aberta})
             </button>
           </div>
-        </div>
 
-        {/* Legend */}
-        <div className="flex gap-4 text-[11px] text-[var(--text-muted)] font-medium items-center self-end md:self-auto">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#30363D]"></span>
-            <span>Livre</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-            <span>Aberta</span>
+          {/* Legend */}
+          <div className="flex gap-3 text-[11px] text-[var(--text-muted)] font-medium items-center ml-auto">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#30363D]"></span>
+              <span>Livre</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+              <span>Aberta</span>
+            </div>
           </div>
         </div>
       </div>
@@ -121,7 +120,7 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
           <p className="text-sm">Nenhuma comanda encontrada com os filtros atuais.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2.5">
+        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2.5">
           {filtered.map(c => {
             const open = c.status === 'aberta';
             const totalItems = c.items.reduce((sum, item) => sum + item.qty, 0);

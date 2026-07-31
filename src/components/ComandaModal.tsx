@@ -39,6 +39,7 @@ export default function ComandaModal({
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [tempNote, setTempNote] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'pedido' | 'cardapio' | 'info'>('pedido');
 
   const open = comanda.status === 'aberta';
 
@@ -205,11 +206,11 @@ export default function ComandaModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-40">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-40 comanda-modal-overlay">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl h-[90vh] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-4xl h-[90vh] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col comanda-modal-box"
       >
         {/* Header */}
         <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-panel)]">
@@ -246,51 +247,81 @@ export default function ComandaModal({
 
         {/* Content columns */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Mobile tabs */}
+          <div className="md:hidden mobile-tabs">
+            <button
+              onClick={() => setMobileTab('pedido')}
+              className={`mobile-tab-btn ${mobileTab === 'pedido' ? 'active' : ''}`}
+            >
+              <BookOpen size={14} />
+              Pedido {comanda.items.length > 0 && `(${comanda.items.length})`}
+            </button>
+            <button
+              onClick={() => setMobileTab('cardapio')}
+              className={`mobile-tab-btn ${mobileTab === 'cardapio' ? 'active' : ''}`}
+            >
+              <Search size={14} />
+              Cardápio
+            </button>
+            <button
+              onClick={() => setMobileTab('info')}
+              className={`mobile-tab-btn ${mobileTab === 'info' ? 'active' : ''}`}
+            >
+              <User size={14} />
+              Info
+            </button>
+          </div>
+
           {/* Left panel: Info & Items list */}
-          <div className="flex-1 overflow-y-auto p-4 border-b md:border-b-0 md:border-r border-[var(--border-color)] space-y-4">
-            {/* Meta Inputs */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+          {/* Desktop: always visible | Mobile: visible when tab=pedido or tab=info */}
+          <div className={`flex-1 overflow-y-auto p-4 border-b md:border-b-0 md:border-r border-[var(--border-color)] space-y-4 ${
+            'md:block' + (mobileTab === 'pedido' || mobileTab === 'info' ? '' : ' hidden')
+          }`}>
+            {/* Meta Inputs - Info tab mobile / always visible desktop */}
+            <div className={mobileTab === 'pedido' ? 'hidden md:block' : ''}>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Users size={12} />
+                    <span>Mesa / Cliente</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={mesa}
+                    onChange={(e) => handleMetaChange('mesa', e.target.value)}
+                    placeholder="Ex: Mesa 5, João"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <User size={12} />
+                    <span>Funcionário</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={garcom}
+                    onChange={(e) => handleMetaChange('garcom', e.target.value)}
+                    placeholder="Ex: Lucas"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3">
                 <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Users size={12} />
-                  <span>Mesa / Cliente</span>
+                  <Clipboard size={12} />
+                  <span>Observações Gerais</span>
                 </label>
                 <input
                   type="text"
-                  value={mesa}
-                  onChange={(e) => handleMetaChange('mesa', e.target.value)}
-                  placeholder="Ex: Mesa 5, João"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
+                  value={obs}
+                  onChange={(e) => handleMetaChange('obs', e.target.value)}
+                  placeholder="Ex: Sem cebola nos pratos, gelo separado"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
                 />
               </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <User size={12} />
-                  <span>Funcionário</span>
-                </label>
-                <input
-                  type="text"
-                  value={garcom}
-                  onChange={(e) => handleMetaChange('garcom', e.target.value)}
-                  placeholder="Ex: Lucas"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Clipboard size={12} />
-                <span>Observações Gerais</span>
-              </label>
-              <input
-                type="text"
-                value={obs}
-                onChange={(e) => handleMetaChange('obs', e.target.value)}
-                placeholder="Ex: Sem cebola nos pratos, gelo separado"
-                className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
-              />
             </div>
 
             {/* Items display */}
@@ -355,16 +386,16 @@ export default function ComandaModal({
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleQtyChange(item.id, -1)}
-                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 sm:w-5 sm:h-5 qty-btn-mobile rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Minus size={11} />
                           </button>
-                          <span className="text-xs font-bold font-mono text-[var(--text-main)] min-w-[14px] text-center">
+                          <span className="text-xs font-bold font-mono text-[var(--text-main)] min-w-[20px] text-center">
                             {item.qty}
                           </span>
                           <button
                             onClick={() => handleQtyChange(item.id, 1)}
-                            className="w-5 h-5 rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                            className="w-5 h-5 sm:w-5 sm:h-5 qty-btn-mobile rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
                           >
                             <Plus size={11} />
                           </button>
@@ -392,7 +423,10 @@ export default function ComandaModal({
           </div>
 
           {/* Right panel: Product picker */}
-          <div className="w-full md:w-80 flex flex-col bg-[var(--bg-panel)]">
+          {/* Desktop: always visible | Mobile: visible when tab=cardapio */}
+          <div className={`w-full md:w-80 flex flex-col bg-[var(--bg-panel)] ${
+            mobileTab === 'cardapio' ? '' : 'hidden md:flex'
+          }`}>
             <div className="p-3 border-b border-[var(--border-color)] shrink-0">
               <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
                 Cardápio de Lançamento

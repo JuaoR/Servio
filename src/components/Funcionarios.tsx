@@ -280,11 +280,11 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
 
       {/* Form panel Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-5 shadow-2xl relative"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full sm:max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] sm:rounded-2xl rounded-t-2xl p-5 shadow-2xl relative overflow-y-auto max-h-[90dvh]"
           >
             <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)] mb-4">
               <h3 className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
