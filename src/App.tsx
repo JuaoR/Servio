@@ -893,9 +893,9 @@ export default function App() {
               onClick={() => setMoreSheetOpen(false)}
             />
             <motion.div
-              initial={{ translateY: '100%' }}
-              animate={{ translateY: 0 }}
-              exit={{ translateY: '100%' }}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
               transition={{ type: 'tween', duration: 0.25 }}
               className="mobile-more-sheet-content"
             >
