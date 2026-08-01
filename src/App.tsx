@@ -73,6 +73,7 @@ export default function App() {
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
   const [isDark, setIsDark] = useState(() => {
@@ -422,6 +423,7 @@ export default function App() {
     setIsLoggedIn(false);
     setSession(null);
     setIsRecoveryMode(false);
+    setCurrentView('dashboard');
   };
 
   // Auth gate
@@ -513,15 +515,12 @@ export default function App() {
     historico: 'Histórico',
     configuracoes: 'Configurações'
   };
-
-  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
-
   // Navegação mobile: quais views ficam na bottom nav
   const BOTTOM_NAV_VIEWS = ['dashboard', 'comandas', 'produtos', 'historico'];
   const isMoreActive = !BOTTOM_NAV_VIEWS.includes(currentView);
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-main)] flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-[var(--bg-base)] text-[var(--text-main)] flex flex-col overflow-hidden relative">
       {/* Dynamic Restaurant Chalkboard Background Texture */}
       <div 
         className="absolute inset-0 bg-[url('/src/assets/images/restaurant_light_bg_1783448355942.jpg')] bg-cover bg-center bg-no-repeat opacity-[0.07] pointer-events-none mix-blend-overlay z-0"
