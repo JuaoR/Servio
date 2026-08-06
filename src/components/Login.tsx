@@ -541,7 +541,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 <p className={`card-sub ${view === 'signup' ? 'text-[11px] mt-0.5' : ''}`}>
                   {view === 'login' && (isEmployeeLogin ? 'Acesse seu ambiente de trabalho' : 'Acesse sua central de comando')}
                   {view === 'signup' && 'Insira os dados para cadastrar seu restaurante'}
-                  {view === 'forgot' && 'Insira seu email para recuperar'}
+                  {view === 'forgot' && 'Insira seu email para recuperar sua senha'}
                   {view === 'reset' && 'Crie uma nova senha segura'}
                   {view === 'confirm_email' && 'Quase lá!'}
                 </p>
