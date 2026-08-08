@@ -111,8 +111,9 @@ export interface HistoricoItem {
 export interface Funcionario {
   id: string;
   name: string;
-  username: string;
-  password: string;
+  code?: string;
+  username?: string;
+  password?: string;
   whatsapp?: string;
   phone?: string;
   email?: string;
@@ -146,4 +147,92 @@ export interface StockMovement {
   created_at?: string;
   created_by?: string;
 }
+
+export type Garcom = Funcionario;
+
+export type MovimentacaoTipo = 'abertura' | 'venda' | 'sangria' | 'suprimento' | 'cancelamento' | 'desconto' | 'fechamento';
+
+export interface CaixaSessao {
+  id: string;
+  restaurantId?: string;
+  restaurant_id?: string;
+  status: 'aberto' | 'fechado';
+  saldoInicial: number;
+  saldo_inicial?: number;
+  abertoEm: number;
+  aberto_em?: string;
+  fechadoEm?: number | null;
+  fechado_em?: string | null;
+  operador: string;
+  operadorId?: string | null;
+  operador_id?: string | null;
+  obs?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MovimentacaoCaixa {
+  id: string;
+  caixaId: string;
+  caixa_id?: string;
+  restaurantId?: string;
+  restaurant_id?: string;
+  tipo: MovimentacaoTipo;
+  valor: number;
+  formaPagamento?: string | null;
+  forma_pagamento?: string | null;
+  descricao: string;
+  operador: string;
+  operadorId?: string | null;
+  operador_id?: string | null;
+  comandaId?: string | null;
+  comanda_id?: string | null;
+  criadoEm: number;
+  criado_em?: string;
+  created_at?: string;
+}
+
+export interface FechamentoCaixa {
+  id: string;
+  caixaId: string;
+  caixa_id?: string;
+  restaurantId?: string;
+  restaurant_id?: string;
+  saldoInicial: number;
+  saldo_inicial?: number;
+  totalVendasDinheiro: number;
+  total_vendas_dinheiro?: number;
+  totalVendasPix: number;
+  total_vendas_pix?: number;
+  totalVendasCredito: number;
+  total_vendas_credito?: number;
+  totalVendasDebito: number;
+  total_vendas_debito?: number;
+  totalVendas: number;
+  total_vendas?: number;
+  totalSangrias: number;
+  total_sangrias?: number;
+  totalSuprimentos: number;
+  total_suprimentos?: number;
+  totalDescontos: number;
+  total_descontos?: number;
+  saldoEsperado: number;
+  saldo_esperado?: number;
+  saldoContado: number;
+  saldo_contado?: number;
+  diferenca: number;
+  justificativa?: string;
+  fechadoEm: number;
+  fechado_em?: string;
+  duracaoMinutos: number;
+  duracao_minutos?: number;
+  duracao?: number;
+  operador: string;
+  operadorId?: string | null;
+  operador_id?: string | null;
+  qtdVendas: number;
+  qtd_vendas?: number;
+  created_at?: string;
+}
+
 

@@ -109,25 +109,24 @@ export default function Caixa({ caixaAtiva, sessoes, movimentacoes, fechamentos,
     <div className="space-y-5">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-[var(--text-main)] tracking-tight">Caixa</h1>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-black text-[var(--text-main)] tracking-tight">Caixa</h1>
+            {/* Status badge */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+              caixaAtiva
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${caixaAtiva ? 'bg-emerald-500 animate-pulse' : 'bg-red-400'}`} />
+              {caixaAtiva ? 'Aberto' : 'Fechado'}
+            </div>
+          </div>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">
             {caixaAtiva
               ? `Turno aberto às ${fmtTime(caixaAtiva.abertoEm)} · ${fmtDate(caixaAtiva.abertoEm)}`
               : 'Nenhum caixa aberto no momento'}
           </p>
-        </div>
-
-        {/* Status badge + action */}
-        <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-            caixaAtiva
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${caixaAtiva ? 'bg-emerald-500 animate-pulse' : 'bg-red-400'}`} />
-            {caixaAtiva ? 'Aberto' : 'Fechado'}
-          </div>
         </div>
       </div>
 
@@ -145,12 +144,6 @@ export default function Caixa({ caixaAtiva, sessoes, movimentacoes, fechamentos,
               Enquanto o caixa estiver fechado, não é possível receber pagamentos de comandas.
             </p>
           </div>
-          <button
-            onClick={onAbrirCaixa}
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-[#090D14] font-black text-xs rounded-xl cursor-pointer shadow-lg shadow-emerald-500/20 shrink-0 active:scale-[0.98] transition-all"
-          >
-            Abrir Caixa
-          </button>
         </motion.div>
       )}
 

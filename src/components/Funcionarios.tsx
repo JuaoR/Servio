@@ -31,7 +31,7 @@ interface FuncionariosProps {
   onDeleteFuncionario: (id: string) => void;
 }
 
-import { supabase, adminSupabase } from "../supabaseClient";
+import { supabase } from "../supabaseClient";
 
 export default function Funcionarios({ funcionarios, history, restaurantId, identifier, onCreateFuncionario, onUpdateFuncionario, onDeleteFuncionario }: FuncionariosProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -130,40 +130,21 @@ export default function Funcionarios({ funcionarios, history, restaurantId, iden
     const processData = async () => {
       try {
         if (!editingId && restaurantId) {
-          // 1. Auth Signup with adminSupabase
-          const safeUsername = payload.username.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const safeDomain = (identifier || restaurantId || 'servio').toLowerCase().replace(/[^a-z0-9]/g, '');
-          const employeeEmail = `${safeUsername}@${safeDomain}.com`;
-          const { data: authData, error: authError } = await adminSupabase.auth.signUp({
-            email: employeeEmail,
-            password: payload.password,
-            options: {
-              data: {
-                role: 'waiter',
-                restaurant_id: restaurantId,
-                name: payload.name
-              }
-            }
-          });
-          
-          if (authError) {
-             alert('Erro ao criar login de funcionário: ' + authError.message);
-             return;
-          }
-
-          // 2. Insert into waiters table
+          // Insert into waiters table
           const { data: waiterData, error: waiterError } = await supabase.from('waiters').insert({
              restaurant_id: restaurantId,
              name: payload.name,
-             username: payload.username,
-             password: payload.password, // storing for quick reference, not ideal but working with current system
+             code: payload.username, // using username as code for login/pin
+             phone: payload.whatsapp,
+             email: payload.email,
              is_active: true
           }).select().single();
           
           if (!waiterError && waiterData) {
             onCreateFuncionario({ ...payload, id: waiterData.id });
           } else {
-            onCreateFuncionario(payload); // fallback
+            console.error('Waiters insert error:', waiterError);
+            onCreateFuncionario(payload); // fallback se a tabela falhar
           }
         } else {
           // just update locally for now

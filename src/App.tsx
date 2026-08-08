@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sun, Moon, Settings } from 'lucide-react';
-import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Funcionario } from './types';
+import { SystemState, Comanda, Categoria, Produto, ItemPedido, HistoricoItem, Funcionario, CaixaSessao, MovimentacaoCaixa, FechamentoCaixa, MovimentacaoTipo } from './types';
 import { supabase } from './supabaseClient';
 
 // Components
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Comandas from './components/Comandas';
+import Caixa from './components/Caixa';
+import CaixaAbertura from './components/CaixaAbertura';
+import CaixaFechamento from './components/CaixaFechamento';
+import CaixaSangriaModal from './components/CaixaSangriaModal';
 import Produtos from './components/Produtos';
 import Categorias from './components/Categorias';
 import Historico from './components/Historico';
@@ -21,6 +25,7 @@ import {
   ChefHat,
   LayoutDashboard,
   ClipboardList,
+  Wallet,
   UtensilsCrossed,
   Tags,
   Users,
@@ -33,22 +38,8 @@ import {
   Store
 } from 'lucide-react';
 
-const STORAGE_KEY = 'servio_state_v1';
+// localStorage: apenas para preferências de UI (tema), nunca para dados críticos
 const LEGACY_STORAGE_KEY = 'restauros_v3';
-
-const DEF_CATS: Categoria[] = [
-  { id: 'c1', name: 'Bebidas', color: '#3B82F6', icon: 'CupSoda' },
-  { id: 'c2', name: 'Entradas', color: '#F59E0B', icon: 'Salad' },
-  { id: 'c3', name: 'Pratos Principais', color: '#EF4444', icon: 'Utensils' },
-  { id: 'c4', name: 'Sobremesas', color: '#EC4899', icon: 'Cake' },
-  { id: 'c5', name: 'Porções', color: '#8B5CF6', icon: 'Pizza' },
-  { id: 'c6', name: 'Drinks & Coquetéis', color: '#10B981', icon: 'Beer' },
-];
-
-const DEF_PRODS: Produto[] = [];
-
-const DEF_GARCONS: Funcionario[] = [];
-
 
 function makeEmptyComandas(): Record<number, Comanda> {
   const c: Record<number, Comanda> = {};
@@ -65,6 +56,28 @@ function makeEmptyComandas(): Record<number, Comanda> {
     };
   }
   return c;
+}
+
+// Mapear erro PGCODE do Supabase para mensagem amigável
+function mapSupabaseError(error: any): string {
+  if (!error) return 'Erro desconhecido';
+  const msg = error.message || '';
+  const code = error.code || '';
+  // Erros personalizados das RPCs
+  if (msg.includes('Já existe um caixa aberto')) return 'Já existe um caixa aberto para este restaurante. Feche-o antes de abrir um novo.';
+  if (msg.includes('Apenas administradores podem abrir')) return 'Apenas administradores podem abrir o caixa.';
+  if (msg.includes('Apenas administradores podem fechar')) return 'Apenas administradores podem fechar o caixa.';
+  if (msg.includes('Perfil do usuário não encontrado')) return 'Perfil não encontrado. Tente fazer logout e login novamente.';
+  if (msg.includes('O caixa não está aberto')) return 'O caixa não está aberto no momento.';
+  if (msg.includes('Sessão de caixa não encontrada')) return 'Sessão de caixa não encontrada no banco.';
+  if (msg.includes('Acesso negado')) return 'Acesso negado: operação não permitida.';
+  // Erros do PostgreSQL
+  if (code === '23505') return 'Registro duplicado — este item já existe.';
+  if (code === '23503') return 'Referência inválida — item relacionado não encontrado.';
+  if (code === '42501') return 'Permissão negada pelo banco de dados (RLS).';
+  if (code === 'PGRST301') return 'Sessão expirada. Faça login novamente.';
+  // Genérico
+  return msg || 'Erro ao comunicar com o servidor.';
 }
 
 export default function App() {
@@ -91,65 +104,31 @@ export default function App() {
   const [activeComandaId, setActiveComandaId] = useState<number | null>(null);
   const [showPaymentId, setShowPaymentId] = useState<number | null>(null);
 
+  // Caixa State
+  const [caixaAtiva, setCaixaAtiva] = useState<CaixaSessao | null>(null);
+  const [caixaSessoes, setCaixaSessoes] = useState<CaixaSessao[]>([]);
+  const [movimentacoesCaixa, setMovimentacoesCaixa] = useState<MovimentacaoCaixa[]>([]);
+  const [fechamentosCaixa, setFechamentosCaixa] = useState<FechamentoCaixa[]>([]);
+  const [modalAbrirCaixa, setModalAbrirCaixa] = useState(false);
+  const [modalFecharCaixa, setModalFecharCaixa] = useState(false);
+  const [modalSangriaTipo, setModalSangriaTipo] = useState<'sangria' | 'suprimento' | null>(null);
+
   // Core system state
   const [userRole, setUserRole] = useState<string>('admin');
   const [restaurantId, setRestaurantId] = useState<string>('');
   const [identifier, setIdentifier] = useState<string>('');
   
-  const [state, setState] = useState<SystemState>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Ensure all 100 comandas exist (range 1 to 100)
-        const comandas = parsed.comandas || {};
-        const cleanedComandas: Record<number, Comanda> = {};
-        for (let i = 1; i <= 100; i++) {
-          if (comandas[i]) {
-            cleanedComandas[i] = {
-              ...comandas[i],
-              id: i
-            };
-          } else {
-            cleanedComandas[i] = {
-              id: i,
-              status: 'livre',
-              items: [],
-              mesa: '',
-              garcom: '',
-              obs: '',
-              openedAt: null,
-              discount: 0,
-            };
-          }
-        }
-        return {
-          categories: parsed.categories || DEF_CATS,
-          products: parsed.products || DEF_PRODS,
-          comandas: cleanedComandas,
-          history: parsed.history || [],
-          rname: parsed.rname || 'Restaurante Exemplo',
-          funcionarios: parsed.funcionarios || [],
-        };
-      }
-    } catch (e) {
-      console.error('Error loading initial state', e);
-    }
-
-    return {
-      categories: DEF_CATS,
-      products: DEF_PRODS,
-      comandas: makeEmptyComandas(),
-      history: [],
-      rname: 'Servio Gourmet',
-      funcionarios: [],
-    };
+  // Estado inicial vazio — dados virão do Supabase após login
+  const [state, setState] = useState<SystemState>({
+    categories: [],
+    products: [],
+    comandas: makeEmptyComandas(),
+    history: [],
+    rname: 'Carregando...',
+    funcionarios: [],
   });
 
-  // Save state on change
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
 
   useEffect(() => {
@@ -226,24 +205,136 @@ export default function App() {
             }
 
             // Sync from Supabase for this restaurant
+            setIsLoadingData(true);
             const [
               { data: dbCategories },
               { data: dbProducts },
               { data: dbWaiters },
-              { data: dbComandas }
+              { data: dbComandas },
+              { data: dbSessoes },
+              { data: dbMovs },
+              { data: dbFechs },
+              { data: dbHistory }
             ] = await Promise.all([
-              supabase.from('categories').select('*').eq('restaurant_id', restId),
-              supabase.from('products').select('*').eq('restaurant_id', restId).eq('is_available', true),
-              supabase.from('waiters').select('*').eq('restaurant_id', restId),
-              supabase.from('comandas').select('*').eq('restaurant_id', restId).eq('status', 'aberta')
+              supabase.from('categories').select('*').eq('restaurant_id', restId).order('name'),
+              supabase.from('products').select('*').eq('restaurant_id', restId).order('name'),
+              supabase.from('waiters').select('*').eq('restaurant_id', restId).order('name'),
+              supabase.from('comandas').select('*, comanda_items(*)').eq('restaurant_id', restId).eq('status', 'aberta'),
+              supabase.from('caixa_sessoes').select('*').eq('restaurant_id', restId).order('aberto_em', { ascending: false }),
+              supabase.from('caixa_movimentacoes').select('*').eq('restaurant_id', restId).order('criado_em', { ascending: false }),
+              supabase.from('caixa_fechamentos').select('*').eq('restaurant_id', restId).order('fechado_em', { ascending: false }),
+              supabase.from('comanda_history').select('*').eq('restaurant_id', restId).order('closed_at', { ascending: false }).limit(200)
             ]);
+
+            if (dbSessoes) {
+              const mappedSessoes: CaixaSessao[] = dbSessoes.map(s => ({
+                id: s.id,
+                restaurantId: s.restaurant_id,
+                status: s.status,
+                saldoInicial: Number(s.saldo_inicial) || 0,
+                abertoEm: new Date(s.aberto_em).getTime(),
+                fechadoEm: s.fechado_em ? new Date(s.fechado_em).getTime() : null,
+                operador: s.operador,
+                obs: s.obs || ''
+              }));
+              setCaixaSessoes(mappedSessoes);
+              const aberta = mappedSessoes.find(s => s.status === 'aberto');
+              setCaixaAtiva(aberta || null);
+            }
+
+            if (dbMovs) {
+              const mappedMovs: MovimentacaoCaixa[] = dbMovs.map(m => ({
+                id: m.id,
+                caixaId: m.caixa_id,
+                restaurantId: m.restaurant_id,
+                tipo: m.tipo,
+                valor: Number(m.valor) || 0,
+                formaPagamento: m.forma_pagamento,
+                descricao: m.descricao,
+                operador: m.operador,
+                comandaId: m.comanda_id,
+                criadoEm: new Date(m.criado_em).getTime()
+              }));
+              setMovimentacoesCaixa(mappedMovs);
+            }
+
+            if (dbFechs) {
+              const mappedFechs: FechamentoCaixa[] = dbFechs.map(f => ({
+                id: f.id,
+                caixaId: f.caixa_id,
+                restaurantId: f.restaurant_id,
+                saldoInicial: Number(f.saldo_inicial) || 0,
+                totalVendasDinheiro: Number(f.total_vendas_dinheiro) || 0,
+                totalVendasPix: Number(f.total_vendas_pix) || 0,
+                totalVendasCredito: Number(f.total_vendas_credito) || 0,
+                totalVendasDebito: Number(f.total_vendas_debito) || 0,
+                totalVendas: Number(f.total_vendas) || 0,
+                totalSangrias: Number(f.total_sangrias) || 0,
+                totalSuprimentos: Number(f.total_suprimentos) || 0,
+                totalDescontos: Number(f.total_descontos) || 0,
+                saldoEsperado: Number(f.saldo_esperado) || 0,
+                saldoContado: Number(f.saldo_contado) || 0,
+                diferenca: Number(f.diferenca) || 0,
+                justificativa: f.justificativa,
+                fechadoEm: new Date(f.fechado_em).getTime(),
+                duracaoMinutos: f.duracao_minutos,
+                duracao: f.duracao_minutos,
+                operador: f.operador,
+                qtdVendas: f.qtd_vendas
+              }));
+              setFechamentosCaixa(mappedFechs);
+            }
 
             setState(prev => {
               const newState = { ...prev };
-              if (dbCategories) newState.categories = dbCategories as any;
-              if (dbProducts) newState.products = dbProducts as any;
-              if (dbWaiters) newState.garcons = dbWaiters as any;
-              
+              if (dbCategories) {
+                newState.categories = dbCategories.map((c: any) => ({
+                  id: c.id, name: c.name, color: c.color, icon: c.icon, restaurant_id: c.restaurant_id
+                }));
+              }
+              if (dbProducts) {
+                newState.products = dbProducts.map((p: any) => ({
+                  id: p.id, name: p.name, cid: p.category_id, category_id: p.category_id,
+                  price: Number(p.price), avail: p.is_available, is_available: p.is_available,
+                  cost_price: p.cost_price, sku: p.sku, stock_quantity: Number(p.stock_quantity || 0),
+                  track_stock: p.track_stock, restaurant_id: p.restaurant_id
+                }));
+              }
+              if (dbWaiters) {
+                const mappedWaiters = dbWaiters.map((w: any) => ({
+                  id: w.id, name: w.name, code: w.code, phone: w.phone, email: w.email,
+                  active: w.is_active, is_active: w.is_active,
+                  commissionRate: Number(w.commission_rate || 0), commission_rate: Number(w.commission_rate || 0),
+                  restaurant_id: w.restaurant_id
+                }));
+                newState.garcons = mappedWaiters;
+                newState.funcionarios = mappedWaiters;
+              }
+
+              if (dbHistory) {
+                newState.history = dbHistory.map((h: any) => ({
+                  id: h.id,
+                  cmdId: h.comanda_number,
+                  mesa: h.table_number || '',
+                  garcom: h.waiter_name || '',
+                  obs: h.notes || '',
+                  items: (h.items || []).map((it: any) => ({
+                    id: it.id || String(Math.random()),
+                    pid: it.product_id,
+                    name: it.name,
+                    price: Number(it.price),
+                    qty: Number(it.quantity),
+                    note: it.notes || ''
+                  })),
+                  subtotal: Number(h.subtotal),
+                  discount: Number(h.discount),
+                  total: Number(h.total),
+                  payMethod: h.payment_method || '',
+                  openedAt: h.opened_at ? new Date(h.opened_at).getTime() : Date.now(),
+                  closedAt: new Date(h.closed_at).getTime()
+                }));
+              }
+
               if (dbComandas) {
                 const updatedComandas = {} as Record<number, any>;
                 for (let i = 1; i <= 100; i++) {
@@ -258,19 +349,29 @@ export default function App() {
                     discount: 0
                   };
                 }
-                
-                dbComandas.forEach(c => {
+
+                dbComandas.forEach((c: any) => {
                   if (c.number && c.number >= 1 && c.number <= 100) {
+                    // Mapear itens da comanda_items (join) ou do campo items JSONB
+                    const itensDB: any[] = c.comanda_items || c.items || [];
+                    const mappedItems = itensDB.map((it: any) => ({
+                      id: it.id,
+                      pid: it.product_id,
+                      name: it.name,
+                      price: Number(it.price),
+                      qty: Number(it.quantity),
+                      note: it.notes || ''
+                    }));
                     updatedComandas[c.number] = {
                       id: c.number,
                       uuid: c.id,
                       status: 'aberta',
-                      items: c.items || [],
+                      items: mappedItems,
                       mesa: c.table_number || '',
                       garcom: c.waiter_id || '',
                       obs: c.notes || '',
                       openedAt: c.opened_at ? new Date(c.opened_at).getTime() : Date.now(),
-                      discount: c.discount || 0
+                      discount: Number(c.discount) || 0
                     };
                   }
                 });
@@ -278,6 +379,8 @@ export default function App() {
               }
               return newState;
             });
+            setIsLoadingData(false);
+
 
             // Subscribe to realtime changes
             const channel = supabase
@@ -377,184 +480,422 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handler helpers
-  const handleMetaUpdate = (id: number, meta: { mesa: string; garcom: string; obs: string }) => {
+  // Handler helpers — Supabase first, atualiza estado local após confirmação
+  const handleMetaUpdate = async (id: number, meta: { mesa: string; garcom: string; obs: string }) => {
+    const comanda = state.comandas[id];
+    // Atualiza estado local imediatamente (UX)
     setState(prev => {
       const updatedComandas = { ...prev.comandas };
-      updatedComandas[id] = {
-        ...updatedComandas[id],
-        ...meta
-      };
+      updatedComandas[id] = { ...updatedComandas[id], ...meta };
       return { ...prev, comandas: updatedComandas };
     });
+    // Persiste no banco se houver UUID
+    if (comanda?.uuid && restaurantId) {
+      const { error } = await supabase
+        .from('comandas')
+        .update({
+          table_number: meta.mesa,
+          notes: meta.obs,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', comanda.uuid);
+      if (error) console.error('[handleMetaUpdate] Erro ao atualizar comanda:', error);
+    }
   };
 
-  const handleItemsUpdate = (id: number, items: ItemPedido[], discount: number = 0) => {
+  const handleItemsUpdate = async (id: number, items: ItemPedido[], discount: number = 0) => {
+    const comanda = state.comandas[id];
+    // Atualiza estado local
     setState(prev => {
       const updatedComandas = { ...prev.comandas };
       if (items.length === 0) {
-        updatedComandas[id] = {
-          ...updatedComandas[id],
-          items: [],
-          discount: 0,
-          status: 'livre',
-          openedAt: null
-        };
+        updatedComandas[id] = { ...updatedComandas[id], items: [], discount: 0, status: 'livre', openedAt: null };
       } else {
-        updatedComandas[id] = {
-          ...updatedComandas[id],
-          items,
-          discount
-        };
+        updatedComandas[id] = { ...updatedComandas[id], items, discount };
       }
       return { ...prev, comandas: updatedComandas };
     });
+    // Persiste no banco se houver UUID
+    if (comanda?.uuid && restaurantId) {
+      const subTotal = items.reduce((s, it) => s + it.price * it.qty, 0);
+      const total = Math.max(0, subTotal - discount);
+      // Substituir itens: deletar antigos e inserir novos
+      await supabase.from('comanda_items').delete().eq('comanda_id', comanda.uuid);
+      if (items.length > 0) {
+        const dbItems = items.map(it => ({
+          comanda_id: comanda.uuid,
+          product_id: it.pid,
+          name: it.name,
+          price: it.price,
+          quantity: it.qty,
+          notes: it.note || null
+        }));
+        const { error: itemErr } = await supabase.from('comanda_items').insert(dbItems);
+        if (itemErr) console.error('[handleItemsUpdate] Erro ao inserir itens:', itemErr);
+      }
+      const { error: cmdErr } = await supabase
+        .from('comandas')
+        .update({ discount, subtotal: subTotal, total, updated_at: new Date().toISOString() })
+        .eq('id', comanda.uuid);
+      if (cmdErr) console.error('[handleItemsUpdate] Erro ao atualizar comanda:', cmdErr);
+    }
   };
 
-  const handleOpenComanda = (id: number) => {
+  const handleOpenComanda = async (id: number) => {
+    if (!restaurantId) return;
+    const now = new Date().toISOString();
+    // Verifica se já existe UUID (comanda já criada no banco)
+    const existing = state.comandas[id];
+    if (existing?.uuid) {
+      setState(prev => {
+        const upd = { ...prev.comandas };
+        upd[id] = { ...upd[id], status: 'aberta', openedAt: Date.now() };
+        return { ...prev, comandas: upd };
+      });
+      return;
+    }
+    // Criar comanda no banco
+    const { data: newComanda, error } = await supabase
+      .from('comandas')
+      .insert([{ restaurant_id: restaurantId, number: id, status: 'aberta', opened_at: now }])
+      .select()
+      .single();
+    if (error) {
+      console.error('[handleOpenComanda] Erro ao criar comanda:', error);
+      alert('Erro ao abrir comanda: ' + mapSupabaseError(error));
+      return;
+    }
     setState(prev => {
-      const updatedComandas = { ...prev.comandas };
-      updatedComandas[id] = {
-        ...updatedComandas[id],
-        status: 'aberta',
-        openedAt: Date.now()
-      };
-      return { ...prev, comandas: updatedComandas };
+      const upd = { ...prev.comandas };
+      upd[id] = { ...upd[id], uuid: newComanda.id, status: 'aberta', openedAt: Date.now() };
+      return { ...prev, comandas: upd };
     });
   };
 
-  const handleConfirmPayment = (id: number, method: string, received?: number) => {
+  const handleConfirmPayment = async (id: number, method: string, received?: number) => {
     const comanda = state.comandas[id];
     if (!comanda || comanda.items.length === 0) return;
 
     const subTotal = comanda.items.reduce((s, it) => s + it.price * it.qty, 0);
     const totalVal = Math.max(0, subTotal - comanda.discount);
+    const opName = state.ownerName || 'Operador';
 
-    const historyItem: HistoricoItem = {
-      id: '_' + Math.random().toString(36).substring(2, 9),
-      cmdId: id,
-      mesa: comanda.mesa,
-      garcom: comanda.garcom,
-      obs: comanda.obs,
-      items: comanda.items.map(it => ({ ...it })),
-      subtotal: subTotal,
-      discount: comanda.discount,
-      total: totalVal,
-      payMethod: method,
-      openedAt: comanda.openedAt || Date.now(),
-      closedAt: Date.now()
-    };
-
+    // Atualizar UI imediatamente
     setState(prev => {
       const updatedComandas = { ...prev.comandas };
-      // Reset comanda back to empty & free
-      updatedComandas[id] = {
-        id,
-        status: 'livre',
-        items: [],
-        mesa: '',
-        garcom: '',
-        obs: '',
-        openedAt: null,
-        discount: 0
-      };
-
-      return {
-        ...prev,
-        comandas: updatedComandas,
-        history: [...prev.history, historyItem]
-      };
+      updatedComandas[id] = { id, status: 'livre', items: [], mesa: '', garcom: '', obs: '', openedAt: null, discount: 0 };
+      return { ...prev, comandas: updatedComandas };
     });
-
-    // Close checkout modals
     setShowPaymentId(null);
     setActiveComandaId(null);
+
+    // Fechar no banco via RPC (atômico: fecha comanda + salva histórico + registra caixa)
+    if (comanda.uuid && restaurantId) {
+      const { data: histData, error: histErr } = await supabase.rpc('fechar_comanda', {
+        p_comanda_uuid: comanda.uuid,
+        p_payment_method: method,
+        p_subtotal: subTotal,
+        p_discount: comanda.discount,
+        p_total: totalVal,
+        p_caixa_id: caixaAtiva?.id || null,
+        p_operador: opName
+      });
+
+      if (histErr) {
+        console.error('[handleConfirmPayment] Erro ao fechar comanda via RPC:', histErr);
+      } else if (histData) {
+        // Adicionar ao histórico local a partir dos dados retornados pelo banco
+        const h = histData as any;
+        const historyItem: HistoricoItem = {
+          id: h.id,
+          cmdId: h.comanda_number,
+          mesa: h.table_number || '',
+          garcom: h.waiter_name || '',
+          obs: h.notes || '',
+          items: (h.items || []).map((it: any) => ({
+            id: it.id,
+            pid: it.product_id,
+            name: it.name,
+            price: Number(it.price),
+            qty: Number(it.quantity),
+            note: it.notes || ''
+          })),
+          subtotal: Number(h.subtotal),
+          discount: Number(h.discount),
+          total: Number(h.total),
+          payMethod: h.payment_method,
+          openedAt: h.opened_at ? new Date(h.opened_at).getTime() : Date.now(),
+          closedAt: new Date(h.closed_at).getTime()
+        };
+        setState(prev => ({ ...prev, history: [historyItem, ...prev.history] }));
+
+        // Atualizar movimentações do caixa se houver caixa ativo
+        if (caixaAtiva) {
+          const { data: movs } = await supabase
+            .from('caixa_movimentacoes')
+            .select('*')
+            .eq('caixa_id', caixaAtiva.id)
+            .eq('tipo', 'venda')
+            .order('criado_em', { ascending: false })
+            .limit(1);
+          if (movs && movs.length > 0) {
+            const m = movs[0];
+            const movObj: MovimentacaoCaixa = {
+              id: m.id, caixaId: m.caixa_id, restaurantId: m.restaurant_id,
+              tipo: 'venda', valor: Number(m.valor), formaPagamento: m.forma_pagamento,
+              descricao: m.descricao, operador: m.operador,
+              criadoEm: new Date(m.criado_em).getTime()
+            };
+            setMovimentacoesCaixa(prev => [movObj, ...prev]);
+          }
+        }
+      }
+    } else {
+      // Comanda sem UUID no banco (situação legada) — apenas histórico local
+      console.warn('[handleConfirmPayment] Comanda sem UUID, salvando apenas localmente.');
+      const historyItem: HistoricoItem = {
+        id: '_' + Math.random().toString(36).substring(2, 9),
+        cmdId: id, mesa: comanda.mesa, garcom: comanda.garcom, obs: comanda.obs,
+        items: comanda.items.map(it => ({ ...it })),
+        subtotal: subTotal, discount: comanda.discount, total: totalVal,
+        payMethod: method, openedAt: comanda.openedAt || Date.now(), closedAt: Date.now()
+      };
+      setState(prev => ({ ...prev, history: [historyItem, ...prev.history] }));
+    }
   };
 
-  // Products CRUD
-  const handleCreateProduct = (p: Omit<Produto, 'id'>) => {
-    const newProduct: Produto = {
-      ...p,
-      id: '_' + Math.random().toString(36).substring(2, 9),
-    };
-    setState(prev => ({
-      ...prev,
-      products: [...prev.products, newProduct]
-    }));
+  // Caixa Handlers — usando RPCs atômicas e seguras
+  const handleAbrirCaixaSubmit = async (dados: Omit<CaixaSessao, 'id' | 'fechadoEm' | 'status'>) => {
+    try {
+      // RPC abrir_caixa: valida permissões, verifica caixa existente, cria sessão e movimentação atomicamente
+      const { data: newSessao, error: sessaoErr } = await supabase.rpc('abrir_caixa', {
+        p_saldo_inicial: dados.saldoInicial,
+        p_operador: dados.operador,
+        p_obs: dados.obs || ''
+      });
+
+      if (sessaoErr || !newSessao) {
+        const errMsg = mapSupabaseError(sessaoErr);
+        console.error('[handleAbrirCaixaSubmit] Erro:', sessaoErr);
+        alert('Erro ao abrir o caixa: ' + errMsg);
+        return;
+      }
+
+      const sessaoObj: CaixaSessao = {
+        id: newSessao.id,
+        restaurantId: newSessao.restaurant_id,
+        status: 'aberto',
+        saldoInicial: Number(newSessao.saldo_inicial),
+        abertoEm: new Date(newSessao.aberto_em).getTime(),
+        operador: newSessao.operador,
+        obs: newSessao.obs || ''
+      };
+
+      setCaixaAtiva(sessaoObj);
+      setCaixaSessoes(prev => [sessaoObj, ...prev]);
+
+      // Buscar movimentação de abertura criada pela RPC
+      const { data: movs } = await supabase
+        .from('caixa_movimentacoes')
+        .select('*')
+        .eq('caixa_id', newSessao.id)
+        .order('criado_em', { ascending: false });
+      if (movs && movs.length > 0) {
+        const mapped: MovimentacaoCaixa[] = movs.map(m => ({
+          id: m.id, caixaId: m.caixa_id, restaurantId: m.restaurant_id,
+          tipo: m.tipo, valor: Number(m.valor), formaPagamento: m.forma_pagamento,
+          descricao: m.descricao, operador: m.operador,
+          criadoEm: new Date(m.criado_em).getTime()
+        }));
+        setMovimentacoesCaixa(prev => [...mapped, ...prev]);
+      }
+
+      setModalAbrirCaixa(false);
+    } catch (e: any) {
+      console.error('[handleAbrirCaixaSubmit] Exceção:', e);
+      alert('Erro inesperado ao abrir o caixa: ' + (e?.message || String(e)));
+    }
   };
 
-  const handleUpdateProduct = (id: string, updatedFields: Partial<Produto>) => {
-    setState(prev => ({
-      ...prev,
-      products: prev.products.map(p => p.id === id ? { ...p, ...updatedFields } : p)
-    }));
+  const handleFecharCaixaSubmit = async (fechamento: FechamentoCaixa) => {
+    if (!caixaAtiva) return;
+    try {
+      // RPC fechar_caixa: atômico — atualiza sessão + cria fechamento + movimentação
+      const { data: newFech, error: fechErr } = await supabase.rpc('fechar_caixa', {
+        p_caixa_id: caixaAtiva.id,
+        p_saldo_contado: fechamento.saldoContado,
+        p_justificativa: fechamento.justificativa || '',
+        p_saldo_inicial: fechamento.saldoInicial,
+        p_total_vendas_dinheiro: fechamento.totalVendasDinheiro,
+        p_total_vendas_pix: fechamento.totalVendasPix,
+        p_total_vendas_credito: fechamento.totalVendasCredito,
+        p_total_vendas_debito: fechamento.totalVendasDebito,
+        p_total_vendas: fechamento.totalVendas,
+        p_total_sangrias: fechamento.totalSangrias,
+        p_total_suprimentos: fechamento.totalSuprimentos,
+        p_total_descontos: fechamento.totalDescontos,
+        p_saldo_esperado: fechamento.saldoEsperado,
+        p_duracao_minutos: fechamento.duracaoMinutos,
+        p_operador: fechamento.operador,
+        p_qtd_vendas: fechamento.qtdVendas
+      });
+
+      if (fechErr) {
+        console.error('[handleFecharCaixaSubmit] Erro:', fechErr);
+        alert('Erro ao fechar o caixa: ' + mapSupabaseError(fechErr));
+        return;
+      }
+
+      const fechObj: FechamentoCaixa = {
+        ...fechamento,
+        id: newFech?.id || '_' + Math.random().toString(36).substring(2, 9),
+        duracao: fechamento.duracaoMinutos
+      };
+
+      setFechamentosCaixa(prev => [fechObj, ...prev]);
+      setCaixaSessoes(prev => prev.map(s => s.id === caixaAtiva.id ? { ...s, status: 'fechado', fechadoEm: Date.now() } : s));
+      setCaixaAtiva(null);
+      setModalFecharCaixa(false);
+    } catch (e: any) {
+      console.error('[handleFecharCaixaSubmit] Exceção:', e);
+      alert('Erro inesperado ao fechar o caixa: ' + (e?.message || String(e)));
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      products: prev.products.filter(p => p.id !== id)
-    }));
+  const handleSangriaOuSuprimentoSubmit = async (tipo: MovimentacaoTipo, valor: number, descricao: string) => {
+    if (!caixaAtiva) return;
+    try {
+      const valorFinal = tipo === 'sangria' ? -Math.abs(valor) : Math.abs(valor);
+      const operador = state.ownerName || 'Operador';
+      // RPC registrar_movimentacao_caixa: valida caixa aberto e pertence ao restaurante
+      const { data: newMov, error: movErr } = await supabase.rpc('registrar_movimentacao_caixa', {
+        p_caixa_id: caixaAtiva.id,
+        p_tipo: tipo,
+        p_valor: valorFinal,
+        p_descricao: descricao,
+        p_operador: operador
+      });
+
+      if (movErr) {
+        console.error('[handleSangriaOuSuprimentoSubmit] Erro:', movErr);
+        alert('Erro ao registrar ' + tipo + ': ' + mapSupabaseError(movErr));
+        return;
+      }
+
+      if (newMov) {
+        const m = newMov as any;
+        const movObj: MovimentacaoCaixa = {
+          id: m.id, caixaId: m.caixa_id, tipo,
+          valor: Number(m.valor), descricao: m.descricao, operador: m.operador,
+          criadoEm: new Date(m.criado_em).getTime()
+        };
+        setMovimentacoesCaixa(prev => [movObj, ...prev]);
+      }
+      setModalSangriaTipo(null);
+    } catch (e: any) {
+      console.error('[handleSangriaOuSuprimentoSubmit] Exceção:', e);
+      alert('Erro inesperado: ' + (e?.message || String(e)));
+    }
   };
 
-  // Categories CRUD
-  const handleCreateCategory = (c: Omit<Categoria, 'id'>) => {
-    const newCat: Categoria = {
-      ...c,
-      id: '_' + Math.random().toString(36).substring(2, 9),
-    };
-    setState(prev => ({
-      ...prev,
-      categories: [...prev.categories, newCat]
-    }));
+  // Products CRUD — Supabase first
+  const handleCreateProduct = async (p: Omit<Produto, 'id'>) => {
+    if (!restaurantId) return;
+    const { data, error } = await supabase
+      .from('products')
+      .insert([{ restaurant_id: restaurantId, category_id: p.cid, name: p.name, price: p.price, is_available: p.avail ?? true, cost_price: p.cost_price, sku: p.sku, stock_quantity: p.stock_quantity ?? 0, track_stock: p.track_stock ?? false }])
+      .select().single();
+    if (error) { alert('Erro ao criar produto: ' + mapSupabaseError(error)); return; }
+    const newProduct: Produto = { id: data.id, name: data.name, cid: data.category_id, category_id: data.category_id, price: Number(data.price), avail: data.is_available, is_available: data.is_available, cost_price: data.cost_price, sku: data.sku, stock_quantity: Number(data.stock_quantity), track_stock: data.track_stock, restaurant_id: data.restaurant_id };
+    setState(prev => ({ ...prev, products: [...prev.products, newProduct] }));
   };
 
-  const handleUpdateCategory = (id: string, updatedFields: Partial<Categoria>) => {
-    setState(prev => ({
-      ...prev,
-      categories: prev.categories.map(c => c.id === id ? { ...c, ...updatedFields } : c)
-    }));
+  const handleUpdateProduct = async (id: string, updatedFields: Partial<Produto>) => {
+    const dbFields: any = {};
+    if (updatedFields.name !== undefined) dbFields.name = updatedFields.name;
+    if (updatedFields.price !== undefined) dbFields.price = updatedFields.price;
+    if (updatedFields.avail !== undefined) dbFields.is_available = updatedFields.avail;
+    if (updatedFields.is_available !== undefined) dbFields.is_available = updatedFields.is_available;
+    if (updatedFields.cid !== undefined) dbFields.category_id = updatedFields.cid;
+    if (updatedFields.category_id !== undefined) dbFields.category_id = updatedFields.category_id;
+    if (updatedFields.cost_price !== undefined) dbFields.cost_price = updatedFields.cost_price;
+    if (updatedFields.sku !== undefined) dbFields.sku = updatedFields.sku;
+    if (updatedFields.stock_quantity !== undefined) dbFields.stock_quantity = updatedFields.stock_quantity;
+    if (updatedFields.track_stock !== undefined) dbFields.track_stock = updatedFields.track_stock;
+    const { error } = await supabase.from('products').update(dbFields).eq('id', id);
+    if (error) { alert('Erro ao atualizar produto: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, products: prev.products.map(p => p.id === id ? { ...p, ...updatedFields } : p) }));
   };
 
-  const handleDeleteCategory = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      categories: prev.categories.filter(c => c.id !== id)
-    }));
+  const handleDeleteProduct = async (id: string) => {
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) { alert('Erro ao excluir produto: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, products: prev.products.filter(p => p.id !== id) }));
   };
 
-  // Funcionarios CRUD
-  const handleCreateFuncionario = (g: Omit<Funcionario, 'id'> & { id?: string }) => {
-    const newGarcom: Funcionario = {
-      ...g,
-      id: '_' + Math.random().toString(36).substring(2, 9),
-    };
-    setState(prev => ({
-      ...prev,
-      funcionarios: [...(prev.funcionarios || []), newGarcom]
-    }));
+  // Categories CRUD — Supabase first
+  const handleCreateCategory = async (c: Omit<Categoria, 'id'>) => {
+    if (!restaurantId) return;
+    const { data, error } = await supabase
+      .from('categories')
+      .insert([{ restaurant_id: restaurantId, name: c.name, color: c.color, icon: c.icon }])
+      .select().single();
+    if (error) { alert('Erro ao criar categoria: ' + mapSupabaseError(error)); return; }
+    const newCat: Categoria = { id: data.id, name: data.name, color: data.color, icon: data.icon, restaurant_id: data.restaurant_id };
+    setState(prev => ({ ...prev, categories: [...prev.categories, newCat] }));
   };
 
-  const handleUpdateFuncionario = (id: string, updatedFields: Partial<Funcionario>) => {
-    setState(prev => ({
-      ...prev,
-      funcionarios: (prev.funcionarios || []).map(g => g.id === id ? { ...g, ...updatedFields } : g)
-    }));
+  const handleUpdateCategory = async (id: string, updatedFields: Partial<Categoria>) => {
+    const { error } = await supabase.from('categories').update({ name: updatedFields.name, color: updatedFields.color, icon: updatedFields.icon }).eq('id', id);
+    if (error) { alert('Erro ao atualizar categoria: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, categories: prev.categories.map(c => c.id === id ? { ...c, ...updatedFields } : c) }));
   };
 
-  const handleDeleteFuncionario = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      funcionarios: (prev.funcionarios || []).filter(g => g.id !== id)
-    }));
+  const handleDeleteCategory = async (id: string) => {
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) { alert('Erro ao excluir categoria: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }));
+  };
+
+  // Funcionarios CRUD — Supabase first
+  const handleCreateFuncionario = async (g: Omit<Funcionario, 'id'> & { id?: string }) => {
+    if (!restaurantId) return;
+    const { data, error } = await supabase
+      .from('waiters')
+      .insert([{ restaurant_id: restaurantId, name: g.name, code: g.code || g.username || String(Date.now()).slice(-4), phone: g.whatsapp || g.phone, email: g.email, is_active: g.active ?? true, commission_rate: g.commissionRate ?? 0 }])
+      .select().single();
+    if (error) { alert('Erro ao criar funcionário: ' + mapSupabaseError(error)); return; }
+    const newFunc: Funcionario = { id: data.id, name: data.name, code: data.code, phone: data.phone, email: data.email, active: data.is_active, is_active: data.is_active, commissionRate: Number(data.commission_rate), commission_rate: Number(data.commission_rate), restaurant_id: data.restaurant_id };
+    setState(prev => ({ ...prev, funcionarios: [...(prev.funcionarios || []), newFunc] }));
+  };
+
+  const handleUpdateFuncionario = async (id: string, updatedFields: Partial<Funcionario>) => {
+    const dbFields: any = {};
+    if (updatedFields.name !== undefined) dbFields.name = updatedFields.name;
+    if (updatedFields.code !== undefined) dbFields.code = updatedFields.code;
+    if (updatedFields.phone !== undefined) dbFields.phone = updatedFields.phone;
+    if (updatedFields.whatsapp !== undefined) dbFields.phone = updatedFields.whatsapp;
+    if (updatedFields.email !== undefined) dbFields.email = updatedFields.email;
+    if (updatedFields.active !== undefined) dbFields.is_active = updatedFields.active;
+    if (updatedFields.is_active !== undefined) dbFields.is_active = updatedFields.is_active;
+    if (updatedFields.commissionRate !== undefined) dbFields.commission_rate = updatedFields.commissionRate;
+    const { error } = await supabase.from('waiters').update(dbFields).eq('id', id);
+    if (error) { alert('Erro ao atualizar funcionário: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, funcionarios: (prev.funcionarios || []).map(g => g.id === id ? { ...g, ...updatedFields } : g) }));
+  };
+
+  const handleDeleteFuncionario = async (id: string) => {
+    const { error } = await supabase.from('waiters').delete().eq('id', id);
+    if (error) { alert('Erro ao excluir funcionário: ' + mapSupabaseError(error)); return; }
+    setState(prev => ({ ...prev, funcionarios: (prev.funcionarios || []).filter(g => g.id !== id) }));
   };
 
   // Reset entire state
   const handleResetAllData = () => {
     if (confirm('Atenção: isto apagará TODOS os produtos, comandas e relatórios históricos! Tem certeza que deseja resetar?')) {
       setState({
-        categories: DEF_CATS,
-        products: DEF_PRODS,
+        categories: [],
+        products: [],
         comandas: makeEmptyComandas(),
         history: [],
         rname: 'Servio Gourmet',
@@ -563,6 +904,7 @@ export default function App() {
       setCurrentView('dashboard');
     }
   };
+
 
   const activeComandasCount = (Object.values(state.comandas) as Comanda[]).filter(c => c.status === 'aberta').length;
 
@@ -613,6 +955,20 @@ export default function App() {
           <Comandas
             comandas={state.comandas}
             onOpenComanda={setActiveComandaId}
+          />
+        );
+      case 'caixa':
+        return (
+          <Caixa
+            caixaAtiva={caixaAtiva}
+            sessoes={caixaSessoes}
+            movimentacoes={movimentacoesCaixa}
+            fechamentos={fechamentosCaixa}
+            operador={state.ownerName || 'Admin'}
+            onAbrirCaixa={() => setModalAbrirCaixa(true)}
+            onFecharCaixa={() => setModalFecharCaixa(true)}
+            onSangria={() => setModalSangriaTipo('sangria')}
+            onSuprimento={() => setModalSangriaTipo('suprimento')}
           />
         );
       case 'produtos':
@@ -667,6 +1023,7 @@ export default function App() {
   const VIEW_TITLES: Record<string, string> = {
     dashboard: 'Dashboard',
     comandas: 'Comandas',
+    caixa: 'Caixa / PDV',
     produtos: 'Produtos',
     categorias: 'Categorias',
     funcionarios: 'Funcionários',
@@ -674,7 +1031,7 @@ export default function App() {
     configuracoes: 'Configurações'
   };
   // Navegação mobile: quais views ficam na bottom nav
-  const BOTTOM_NAV_VIEWS = ['dashboard', 'comandas', 'produtos', 'historico'];
+  const BOTTOM_NAV_VIEWS = ['dashboard', 'comandas', 'caixa', 'produtos', 'historico'];
   const isMoreActive = !BOTTOM_NAV_VIEWS.includes(currentView);
 
   return (
@@ -726,6 +1083,25 @@ export default function App() {
                 activeComandasCount > 0 ? 'bg-emerald-500 text-black' : 'bg-[#30363D] text-[var(--text-muted)]'
               }`}>
                 {activeComandasCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setCurrentView('caixa')}
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
+                currentView === 'caixa'
+                  ? 'bg-sky-500/10 text-sky-500 font-bold'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Wallet size={15} />
+                <span>Caixa</span>
+              </div>
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                caixaAtiva ? 'bg-emerald-500 text-black' : 'bg-red-500/20 text-red-400'
+              }`}>
+                {caixaAtiva ? 'ABERTO' : 'FECHADO'}
               </span>
             </button>
 
@@ -871,6 +1247,16 @@ export default function App() {
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#30363D]">
                       {activeComandasCount}
                     </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setCurrentView('caixa'); setMobileMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg ${
+                      currentView === 'caixa' ? 'bg-sky-500/10 text-sky-500 font-bold' : 'text-[var(--text-muted)]'
+                    }`}
+                  >
+                    <Wallet size={15} />
+                    <span>Módulo Caixa</span>
                   </button>
 
                   <button
@@ -1149,6 +1535,40 @@ export default function App() {
             comanda={state.comandas[showPaymentId]}
             onClose={() => setShowPaymentId(null)}
             onConfirmPayment={handleConfirmPayment}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* CAIXA OVERLAY MODALS */}
+      <AnimatePresence>
+        {modalAbrirCaixa && (
+          <CaixaAbertura
+            operador={state.ownerName || 'Admin'}
+            onAbrir={handleAbrirCaixaSubmit}
+            onClose={() => setModalAbrirCaixa(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {modalFecharCaixa && caixaAtiva && (
+          <CaixaFechamento
+            sessao={caixaAtiva}
+            movimentacoes={movimentacoesCaixa}
+            operador={state.ownerName || 'Admin'}
+            onFechar={handleFecharCaixaSubmit}
+            onClose={() => setModalFecharCaixa(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {modalSangriaTipo && (
+          <CaixaSangriaModal
+            tipo={modalSangriaTipo}
+            operador={state.ownerName || 'Admin'}
+            onConfirm={handleSangriaOuSuprimentoSubmit}
+            onClose={() => setModalSangriaTipo(null)}
           />
         )}
       </AnimatePresence>
