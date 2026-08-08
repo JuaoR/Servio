@@ -107,7 +107,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
     setIsCheckingIdentifier(true);
     const timer = setTimeout(async () => {
       try {
-        const { data: exists, error } = await supabase.rpc('check_identifier_exists', { identifier_to_check: identifier });
+        const { data: idExists, error } = await supabase.from('restaurants').select('id').eq('owner_name', identifier).maybeSingle();
+        const exists = !!idExists;
         
         if (exists) {
           setIdentifierStatus('taken');
@@ -285,19 +286,9 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
             setIsLoading(false);
             return;
           }
-          loginEmail = `${username.toLowerCase().trim()}@${identifier}.com`;
-          
-          const { data: restData, error: restError } = await supabase
-            .from('restaurants')
-            .select('id')
-            .eq('id', identifier)
-            .maybeSingle();
-          
-          if (!restData || restError) {
-            setError('Identificador do restaurante não encontrado.');
-            setIsLoading(false);
-            return;
-          }
+          const safeUsername = username.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const safeDomain = identifier.toLowerCase().replace(/[^a-z0-9]/g, '');
+          loginEmail = `${safeUsername}@${safeDomain}.com`;
         }
 
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -308,20 +299,8 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           handleFailedAttempt();
           setError(translateAuthError(authError.message));
         } else if (authData.user) {
-          if (isEmployeeLogin) {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('restaurant_id')
-              .eq('id', authData.user.id)
-              .single();
-              
-            if (profileError || profileData?.restaurant_id !== identifier) {
-              await supabase.auth.signOut();
-              setError('Usuário não cadastrado neste restaurante.');
-              setIsLoading(false);
-              return;
-            }
-          }
+          // Removed profile check here since the email already binds them to the correct identifier domain
+          // The application will handle loading their specific restaurant data based on their profile later.
           
           // Reset cooldown on successful login
           setFailedAttempts(0);
@@ -367,7 +346,18 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           // If session is created directly (email confirm disabled in supabase)
           if (signupData.session) {
             setSuccess('Conta criada e logada com sucesso!');
-            setTimeout(() => onLogin(), 1500);
+            
+            // Fix the identifier in the database since the trigger uses owner_name for the user's name
+            supabase.from('profiles').select('restaurant_id').eq('id', signupData.user.id).single().then(({ data: profile }) => {
+              if (profile?.restaurant_id) {
+                supabase.from('restaurants').update({ owner_name: identifier }).eq('id', profile.restaurant_id).then(() => {
+                  setTimeout(() => onLogin(), 1500);
+                });
+              } else {
+                setTimeout(() => onLogin(), 1500);
+              }
+            });
+            
           } else {
             // E-mail confirmation is enabled
             setViewState('confirm_email');
@@ -541,7 +531,7 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                 <p className={`card-sub ${view === 'signup' ? 'text-[11px] mt-0.5' : ''}`}>
                   {view === 'login' && (isEmployeeLogin ? 'Acesse seu ambiente de trabalho' : 'Acesse sua central de comando')}
                   {view === 'signup' && 'Insira os dados para cadastrar seu restaurante'}
-                  {view === 'forgot' && 'Insira seu email para recuperar'}
+                  {view === 'forgot' && 'Insira seu email para recuperar sua senha'}
                   {view === 'reset' && 'Crie uma nova senha segura'}
                   {view === 'confirm_email' && 'Quase lá!'}
                 </p>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Categoria, Produto } from '../types';
 import LucideIcon, { AVAILABLE_ICONS } from './LucideIcon';
-import { Plus, Edit2, Trash2, Tag, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag, Check, Search } from 'lucide-react';
 
 interface CategoriasProps {
   categories: Categoria[];
@@ -30,6 +30,9 @@ const PRESET_COLORS = [
 export default function Categorias({ categories, products, onCreateCategory, onUpdateCategory, onDeleteCategory }: CategoriasProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+
+  const filteredCategories = search.trim() ? categories.filter(c => c.name.toLowerCase().includes(search.toLowerCase())) : categories;
 
   // Form states
   const [name, setName] = useState('');
@@ -78,14 +81,26 @@ export default function Categorias({ categories, products, onCreateCategory, onU
   return (
     <div className="space-y-4">
       {/* Header bar */}
-      <div className="flex justify-start bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <button
           onClick={handleOpenCreate}
-          className="btn btn-primary cursor-pointer"
+          className="btn btn-primary cursor-pointer shrink-0"
         >
           <Plus size={15} />
           <span>Nova Categoria</span>
         </button>
+        
+        {/* Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Buscar categoria..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
+        </div>
       </div>
 
       {/* Categories Grid */}
@@ -102,7 +117,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
               </tr>
             </thead>
             <tbody>
-              {categories.length === 0 ? (
+              {filteredCategories.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-[#484F58]">
                     <Tag className="mx-auto mb-2" size={36} />
@@ -110,7 +125,7 @@ export default function Categorias({ categories, products, onCreateCategory, onU
                   </td>
                 </tr>
               ) : (
-                categories.map(c => {
+                filteredCategories.map(c => {
                   const prodCount = products.filter(p => p.cid === c.id).length;
                   return (
                     <tr key={c.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/25 transition-colors">
@@ -171,13 +186,13 @@ export default function Categorias({ categories, products, onCreateCategory, onU
 
         {/* Mobile: cards */}
         <div className="sm:hidden p-3 space-y-2">
-          {categories.length === 0 ? (
+          {filteredCategories.length === 0 ? (
             <div className="py-12 text-center text-[#484F58]">
               <Tag className="mx-auto mb-2" size={36} />
               <p className="text-sm">Nenhuma categoria cadastrada.</p>
             </div>
           ) : (
-            categories.map(c => {
+            filteredCategories.map(c => {
               const prodCount = products.filter(p => p.cid === c.id).length;
               return (
                 <div key={c.id} className="flex items-center gap-3 p-3.5 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl">

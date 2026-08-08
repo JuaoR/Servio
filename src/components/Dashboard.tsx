@@ -7,11 +7,12 @@ interface DashboardProps {
   comandas: Record<number, Comanda>;
   history: HistoricoItem[];
   rname: string;
+  ownerName?: string;
   onNavigate: (view: string) => void;
   onOpenComanda: (id: number) => void;
 }
 
-export default function Dashboard({ comandas, history, rname, onNavigate, onOpenComanda }: DashboardProps) {
+export default function Dashboard({ comandas, history, rname, ownerName, onNavigate, onOpenComanda }: DashboardProps) {
 
   const abertas = Object.values(comandas).filter(c => c.status === 'aberta');
   
@@ -66,9 +67,9 @@ export default function Dashboard({ comandas, history, rname, onNavigate, onOpen
     <div className="space-y-6">
       {/* Greeting and Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[var(--text-main)] tracking-tight">
-            {getGreeting()}, {rname || 'Visitante'}!
+        <div className="text-[#281f1f]">
+          <h1 className="text-2xl font-black tracking-tight">
+            {getGreeting()}, {ownerName || 'Visitante'}!
           </h1>
           <p className="text-[var(--text-muted)] text-xs flex items-center gap-2 mt-1">
             <Calendar size={13} />

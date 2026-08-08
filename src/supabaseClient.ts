@@ -19,3 +19,10 @@ export const isMockSupabase = false;
 const supabaseUrl = rawSupabaseUrl;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const adminSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});

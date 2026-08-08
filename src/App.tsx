@@ -92,6 +92,10 @@ export default function App() {
   const [showPaymentId, setShowPaymentId] = useState<number | null>(null);
 
   // Core system state
+  const [userRole, setUserRole] = useState<string>('admin');
+  const [restaurantId, setRestaurantId] = useState<string>('');
+  const [identifier, setIdentifier] = useState<string>('');
+  
   const [state, setState] = useState<SystemState>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -185,29 +189,180 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Buscar dados do restaurante após login
+    // Buscar dados do restaurante após login
   useEffect(() => {
     if (isLoggedIn && session?.user) {
       const fetchRestaurant = async () => {
         try {
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('restaurant_id, restaurants(name)')
+            .select('restaurant_id, role, name, restaurants(name, owner_name)')
             .eq('id', session.user.id)
             .single();
             
           if (profileData && !profileError) {
+            const restId = profileData.restaurant_id;
+            const rRole = profileData.role || 'admin';
+            setRestaurantId(restId);
+            setUserRole(rRole);
+            
+            if (rRole === 'waiter' || rRole === 'employee') {
+              setCurrentView('comandas');
+            }
+
             const rName = (profileData as any).restaurants?.name;
+            const metaIdentifier = session.user?.user_metadata?.restaurant_id;
+            if (metaIdentifier) {
+              setIdentifier(metaIdentifier);
+            } else if ((profileData as any).restaurants?.owner_name) {
+              setIdentifier((profileData as any).restaurants?.owner_name);
+            }
             if (rName) {
               setState(prev => ({ ...prev, rname: rName }));
             }
+            const rOwnerName = profileData.name;
+            if (rOwnerName) {
+              setState(prev => ({ ...prev, ownerName: rOwnerName }));
+            }
+
+            // Sync from Supabase for this restaurant
+            const [
+              { data: dbCategories },
+              { data: dbProducts },
+              { data: dbWaiters },
+              { data: dbComandas }
+            ] = await Promise.all([
+              supabase.from('categories').select('*').eq('restaurant_id', restId),
+              supabase.from('products').select('*').eq('restaurant_id', restId).eq('is_available', true),
+              supabase.from('waiters').select('*').eq('restaurant_id', restId),
+              supabase.from('comandas').select('*').eq('restaurant_id', restId).eq('status', 'aberta')
+            ]);
+
+            setState(prev => {
+              const newState = { ...prev };
+              if (dbCategories) newState.categories = dbCategories as any;
+              if (dbProducts) newState.products = dbProducts as any;
+              if (dbWaiters) newState.garcons = dbWaiters as any;
+              
+              if (dbComandas) {
+                const updatedComandas = {} as Record<number, any>;
+                for (let i = 1; i <= 100; i++) {
+                  updatedComandas[i] = {
+                    id: i,
+                    status: 'livre',
+                    items: [],
+                    mesa: '',
+                    garcom: '',
+                    obs: '',
+                    openedAt: null,
+                    discount: 0
+                  };
+                }
+                
+                dbComandas.forEach(c => {
+                  if (c.number && c.number >= 1 && c.number <= 100) {
+                    updatedComandas[c.number] = {
+                      id: c.number,
+                      uuid: c.id,
+                      status: 'aberta',
+                      items: c.items || [],
+                      mesa: c.table_number || '',
+                      garcom: c.waiter_id || '',
+                      obs: c.notes || '',
+                      openedAt: c.opened_at ? new Date(c.opened_at).getTime() : Date.now(),
+                      discount: c.discount || 0
+                    };
+                  }
+                });
+                newState.comandas = updatedComandas;
+              }
+              return newState;
+            });
+
+            // Subscribe to realtime changes
+            const channel = supabase
+              .channel('comandas_' + restId)
+              .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'comandas',
+                filter: 'restaurant_id=eq.' + restId
+              }, (payload) => {
+                const newData = payload.new as any;
+                const oldData = payload.old as any;
+                
+                if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                   if (newData.status === 'aberta' && newData.number >= 1 && newData.number <= 100) {
+                     setState(prev => {
+                        const upd = { ...prev.comandas };
+                        upd[newData.number] = {
+                          id: newData.number,
+                          uuid: newData.id,
+                          status: 'aberta',
+                          items: newData.items || [],
+                          mesa: newData.table_number || '',
+                          garcom: newData.waiter_id || '',
+                          obs: newData.notes || '',
+                          openedAt: newData.opened_at ? new Date(newData.opened_at).getTime() : Date.now(),
+                          discount: newData.discount || 0
+                        };
+                        return { ...prev, comandas: upd };
+                     });
+                   } else if (newData.status === 'fechada' && newData.number >= 1 && newData.number <= 100) {
+                     setState(prev => {
+                        const upd = { ...prev.comandas };
+                        upd[newData.number] = {
+                          id: newData.number,
+                          status: 'livre',
+                          items: [],
+                          mesa: '',
+                          garcom: '',
+                          obs: '',
+                          openedAt: null,
+                          discount: 0
+                        };
+                        return { ...prev, comandas: upd };
+                     });
+                   }
+                } else if (payload.eventType === 'DELETE') {
+                  if (oldData.number >= 1 && oldData.number <= 100) {
+                    setState(prev => {
+                        const upd = { ...prev.comandas };
+                        upd[oldData.number] = {
+                          id: oldData.number,
+                          status: 'livre',
+                          items: [],
+                          mesa: '',
+                          garcom: '',
+                          obs: '',
+                          openedAt: null,
+                          discount: 0
+                        };
+                        return { ...prev, comandas: upd };
+                     });
+                  }
+                }
+              })
+              .subscribe();
+              
+            return () => {
+              supabase.removeChannel(channel);
+            };
           }
         } catch (e) {
           console.error('Erro ao obter restaurante:', e);
         }
       };
-
-      fetchRestaurant();
+      
+      const unsubscribePromise = fetchRestaurant();
+      
+      return () => {
+        if (unsubscribePromise) {
+          unsubscribePromise.then(unsub => {
+            if (typeof unsub === 'function') unsub();
+          });
+        }
+      };
     }
   }, [isLoggedIn, session]);
 
@@ -369,7 +524,7 @@ export default function App() {
   };
 
   // Funcionarios CRUD
-  const handleCreateFuncionario = (g: Omit<Funcionario, 'id'>) => {
+  const handleCreateFuncionario = (g: Omit<Funcionario, 'id'> & { id?: string }) => {
     const newGarcom: Funcionario = {
       ...g,
       id: '_' + Math.random().toString(36).substring(2, 9),
@@ -448,6 +603,7 @@ export default function App() {
             comandas={state.comandas}
             history={state.history}
             rname={state.rname}
+            ownerName={state.ownerName}
             onNavigate={setCurrentView}
             onOpenComanda={setActiveComandaId}
           />
@@ -492,15 +648,17 @@ export default function App() {
       case 'funcionarios':
         return (
           <Funcionarios
-            funcionarios={state.funcionarios || []}
+            funcionarios={state.garcons || state.funcionarios || []}
             history={state.history}
+            restaurantId={restaurantId}
+            identifier={identifier}
             onCreateFuncionario={handleCreateFuncionario}
             onUpdateFuncionario={handleUpdateFuncionario}
             onDeleteFuncionario={handleDeleteFuncionario}
           />
         );
       case 'configuracoes':
-        return <Configuracoes rname={state.rname} onUpdateRname={(val) => setState(prev => ({...prev, rname: val}))} isDark={isDark} toggleTheme={toggleTheme} />;
+        return <Configuracoes restaurantId={restaurantId} identifier={identifier} onUpdateIdentifier={setIdentifier} rname={state.rname} onUpdateRname={(val) => setState(prev => ({...prev, rname: val}))} ownerName={state.ownerName} onUpdateOwnerName={(val) => setState(prev => ({...prev, ownerName: val}))} isDark={isDark} toggleTheme={toggleTheme} onLogout={handleLogout} onClearLocalData={() => {}} />;
       default:
         return <div className="text-center py-12">View não implementada.</div>;
     }
@@ -525,13 +683,13 @@ export default function App() {
       <div 
         className="absolute inset-0 bg-[url('/src/assets/images/restaurant_light_bg_1783448355942.jpg')] bg-cover bg-center bg-no-repeat opacity-[0.07] pointer-events-none mix-blend-overlay z-0"
       />
-      <div className="h-2 w-full bg-[#0F172A] shrink-0 z-10" />
+      <div className="h-2 w-full bg-[#f1f5f9] shrink-0 z-10" />
       <div className="flex-1 flex overflow-hidden z-10">
       {/* SIDEBAR - Desktop */}
       <aside className="hidden md:flex w-56 bg-[var(--bg-card)] border-r border-[var(--border-color)] flex-col justify-between shrink-0">
         <div>
           {/* Logo container */}
-          <div className="p-5 border-b border-[var(--border-color)] bg-[var(--bg-panel)] flex items-center gap-3">
+          <div className="pl-[20px] pt-[5px] pb-[10px] pr-[10px] border-b border-[var(--border-color)] bg-[var(--bg-panel)] flex items-center gap-3">
             <img src="/images/logo.png" alt="Servio Logo" className="w-10 h-10 object-contain" />
             <span className="text-xl font-serif tracking-tight text-sky-600">Servio</span>
           </div>
@@ -542,7 +700,7 @@ export default function App() {
             
             <button
               onClick={() => setCurrentView('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'dashboard'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -554,7 +712,7 @@ export default function App() {
 
             <button
               onClick={() => setCurrentView('comandas')}
-              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'comandas'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -564,7 +722,7 @@ export default function App() {
                 <ClipboardList size={15} />
                 <span>Comandas</span>
               </div>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
                 activeComandasCount > 0 ? 'bg-emerald-500 text-black' : 'bg-[#30363D] text-[var(--text-muted)]'
               }`}>
                 {activeComandasCount}
@@ -575,7 +733,7 @@ export default function App() {
 
             <button
               onClick={() => setCurrentView('produtos')}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'produtos'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -587,7 +745,7 @@ export default function App() {
 
             <button
               onClick={() => setCurrentView('categorias')}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'categorias'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -599,7 +757,7 @@ export default function App() {
 
             <button
               onClick={() => setCurrentView('funcionarios')}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'funcionarios'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -613,7 +771,7 @@ export default function App() {
 
             <button
               onClick={() => setCurrentView('historico')}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold rounded-lg transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all text-left cursor-pointer ${
                 currentView === 'historico'
                   ? 'bg-sky-500/10 text-sky-500 font-bold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
@@ -635,14 +793,14 @@ export default function App() {
               value={state.rname}
               onChange={(e) => setState(prev => ({ ...prev, rname: e.target.value }))}
               placeholder="Nome do restaurante..."
-              className="bg-transparent text-xs text-[var(--text-main)] font-medium outline-none border-none w-full placeholder-[#484F58] focus:ring-0"
+              className="bg-transparent text-[13px] text-[var(--text-main)] font-medium outline-none border-none w-full placeholder-[#484F58] focus:ring-0"
             />
             <button
               onClick={() => setCurrentView('configuracoes')}
-              className="p-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 text-sky-500 hover:text-white cursor-pointer ml-1.5 transition-all shadow-sm active:scale-95 shrink-0"
+              className="p-[7px] text-base rounded-lg bg-sky-500/10 hover:bg-sky-500 text-white cursor-pointer ml-1.5 transition-all shadow-sm active:scale-95 shrink-0"
               title="Configurações"
             >
-              <Settings size={18} />
+              <Settings size={18} className="text-black" />
             </button>
           </div>
 
@@ -798,8 +956,8 @@ export default function App() {
             </button>
             {/* Logo mobile */}
             <img src="/images/logo.png" alt="Servio" className="md:hidden w-7 h-7 object-contain" />
-            <h2 className="text-xs font-bold text-[var(--text-main)] tracking-widest uppercase">
-              {VIEW_TITLES[currentView] || currentView}
+            <h2 className="text-lg font-black text-[var(--text-main)] tracking-tight">
+              {state.rname || 'Servio Gourmet'}
             </h2>
           </div>
 
@@ -820,13 +978,9 @@ export default function App() {
         </header>
 
         {/* Dynamic Inner Content scroll viewport */}
-        <main className="flex-1 overflow-y-auto p-6 mobile-main-content scrollbar-thin">
+        <main className="flex-1 overflow-y-auto pt-[24px] pr-[50px] pl-0 ml-[15px] pb-6 mobile-main-content scrollbar-thin">
           {renderCurrentView()}
         </main>
-
-        <footer className="hidden md:flex h-10 bg-[var(--bg-panel)] border-t border-[var(--border-color)] items-center justify-center text-[9px] text-[var(--text-muted)] tracking-[0.25em] shrink-0">
-          Sistema Servio • Conectado
-        </footer>
       </div>
 
       {/* ========== BOTTOM NAVIGATION (mobile only) ========== */}

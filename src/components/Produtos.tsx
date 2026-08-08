@@ -82,7 +82,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
   return (
     <div className="space-y-4">
       {/* Search & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <button
           onClick={handleOpenCreate}
           className="btn btn-primary self-start sm:self-auto cursor-pointer shrink-0"
@@ -91,32 +91,30 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
           <span>Novo Produto</span>
         </button>
         
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 w-full sm:w-auto">
-          {/* Search */}
-          <div className="relative w-full sm:w-56">
-            <Search className="absolute left-3.5 top-2.5 text-[var(--text-muted)]" size={15} />
-            <input
-              type="text"
-              placeholder="Buscar produto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCat}
-            onChange={(e) => setSelectedCat(e.target.value)}
-            className="w-full sm:w-auto bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
-          >
-            <option value="all">Todas as Categorias</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+        {/* Category Filter */}
+        <select
+          value={selectedCat}
+          onChange={(e) => setSelectedCat(e.target.value)}
+          className="w-full sm:w-auto bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
+        >
+          <option value="all">Todas as Categorias</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        
+        {/* Search */}
+        <div className="relative w-full sm:w-64 ml-auto">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Buscar produto..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
         </div>
       </div>
 

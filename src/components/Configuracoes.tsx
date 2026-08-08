@@ -14,13 +14,19 @@ import {
   EyeOff, 
   Database,
   Moon,
-  Sun
+  Sun,
+  Copy
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 interface ConfiguracoesProps {
+  restaurantId?: string;
+  identifier?: string;
+  onUpdateIdentifier?: (id: string) => void;
   rname: string;
   onUpdateRname: (name: string) => void;
+  ownerName?: string;
+  onUpdateOwnerName: (name: string) => void;
   isDark: boolean;
   toggleTheme: () => void;
   onLogout: () => void;
@@ -30,8 +36,13 @@ interface ConfiguracoesProps {
 type TabType = 'geral' | 'impressao' | 'seguranca';
 
 export default function Configuracoes({ 
+  restaurantId,
+  identifier,
+  onUpdateIdentifier,
   rname, 
   onUpdateRname, 
+  ownerName,
+  onUpdateOwnerName,
   isDark, 
   toggleTheme,
   onLogout,
@@ -39,6 +50,8 @@ export default function Configuracoes({
 }: ConfiguracoesProps) {
   const [activeTab, setActiveTab] = useState<TabType>('geral');
   const [localName, setLocalName] = useState(rname);
+  const [localOwner, setLocalOwner] = useState(ownerName || '');
+  const [localIdentifier, setLocalIdentifier] = useState(identifier || '');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -61,14 +74,32 @@ export default function Configuracoes({
   const [isLoadingAction, setIsLoadingAction] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const handleSaveGeneral = () => {
+  const handleSaveGeneral = async () => {
     setError(null);
     setSuccess(null);
     if (!localName.trim()) {
       setError('O nome do restaurante não pode ficar em branco.');
       return;
     }
+    if (!localOwner.trim()) {
+      setError('O nome do administrador não pode ficar em branco.');
+      return;
+    }
+    
     onUpdateRname(localName);
+    if (onUpdateOwnerName) onUpdateOwnerName(localOwner);
+
+    if (restaurantId) {
+      await supabase.from('restaurants').update({
+        name: localName.trim()
+      }).eq('id', restaurantId);
+      
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user?.id) {
+         await supabase.from('profiles').update({ name: localOwner.trim() }).eq('id', userData.user.id);
+      }
+    }
+
     setSaved(true);
     setSuccess('Configurações gerais salvas com sucesso!');
     setTimeout(() => setSaved(false), 2500);
@@ -142,13 +173,13 @@ export default function Configuracoes({
         // Chama a RPC criada para remover restaurante, profile e o auth.users
         const { error: rpcError } = await supabase.rpc('delete_user_account');
         
-        if (rpcError) {
-          setActionError('Erro ao excluir conta do Supabase: ' + rpcError.message);
+        // Se a função não existir, prossegue com a exclusão local
+        if (rpcError && !rpcError.message.includes('Could not find the function')) {
+          setActionError('Erro ao excluir conta: ' + rpcError.message);
         } else {
-          setSuccess('Sua conta e todos os dados foram permanentemente removidos. Deslogando...');
-          setConfirmingAction(null);
-          setConfirmPassword('');
+          setSuccess('Sua conta e todos os dados foram removidos. Deslogando...');
           setTimeout(() => {
+            onClearLocalData();
             onLogout();
           }, 2000);
         }
@@ -161,7 +192,7 @@ export default function Configuracoes({
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-10">
+    <div className="space-y-6 max-w-3xl pb-10">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shadow-lg shrink-0">
@@ -237,6 +268,19 @@ export default function Configuracoes({
               <div className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                    Nome do Administrador
+                  </label>
+                  <input 
+                    type="text"
+                    value={localOwner}
+                    onChange={e => setLocalOwner(e.target.value)}
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-semibold"
+                    placeholder="Ex: João Silva"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
                     Nome do Restaurante
                   </label>
                   <input 
@@ -246,6 +290,32 @@ export default function Configuracoes({
                     className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-semibold"
                     placeholder="Ex: Servio Gourmet"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5">
+                    Identificador do Restaurante
+                  </label>
+                  <div className="relative">
+                    <div className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-muted)] font-mono font-semibold flex items-center">
+                      <span>{identifier}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(localIdentifier);
+                        alert('Identificador copiado!');
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sky-500 hover:text-sky-400 text-xs flex items-center gap-1.5 cursor-pointer transition-colors bg-[var(--bg-base)] px-2"
+                      title="Copiar identificador"
+                      type="button"
+                    >
+                      <Copy size={16} />
+                      Copiar
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1.5">
+                    Utilize este identificador para o login dos funcionários. Use apenas letras minúsculas e hífens.
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border border-[var(--border-color)] rounded-xl bg-[var(--bg-base)]">
@@ -417,9 +487,7 @@ export default function Configuracoes({
 
                 {/* DANGER ZONE */}
                 <div className="pt-4 border-t border-red-500/20 space-y-4">
-                  <h4 className="text-[11px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1.5">
-                    <AlertTriangle size={14} /> Zona de Perigo
-                  </h4>
+                  
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Clear System Data */}
@@ -430,7 +498,7 @@ export default function Configuracoes({
                           Limpar Dados
                         </h5>
                         <p className="text-[10px] text-[var(--text-muted)] mt-1.5 leading-normal">
-                          Apaga comandas, itens de comandas, produtos, categorias e funcionários permanentemente do Supabase. O layout básico do restaurante será redefinido.
+                          Apaga comandas, itens de comandas, produtos, categorias e funcionários permanentemente. O layout básico do restaurante será redefinido.
                         </p>
                       </div>
                       <button
@@ -452,7 +520,7 @@ export default function Configuracoes({
                           Excluir Conta
                         </h5>
                         <p className="text-[10px] text-[var(--text-muted)] mt-1.5 leading-normal">
-                          Exclui permanentemente o restaurante, seu perfil de administrador e as credenciais de login do banco de dados e autenticação do Supabase.
+                          Exclui permanentemente o restaurante, seu perfil de administrador e as credenciais de login.
                         </p>
                       </div>
                       <button

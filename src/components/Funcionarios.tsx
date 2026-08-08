@@ -22,14 +22,18 @@ import {
 } from 'lucide-react';
 
 interface FuncionariosProps {
+  restaurantId?: string;
+  identifier?: string;
   funcionarios: Funcionario[];
   history: HistoricoItem[];
-  onCreateFuncionario: (g: Omit<Funcionario, 'id'>) => void;
+  onCreateFuncionario: (g: Omit<Funcionario, 'id'> & { id?: string }) => void;
   onUpdateFuncionario: (id: string, fields: Partial<Funcionario>) => void;
   onDeleteFuncionario: (id: string) => void;
 }
 
-export default function Funcionarios({ funcionarios, history, onCreateFuncionario, onUpdateFuncionario, onDeleteFuncionario }: FuncionariosProps) {
+import { supabase, adminSupabase } from "../supabaseClient";
+
+export default function Funcionarios({ funcionarios, history, restaurantId, identifier, onCreateFuncionario, onUpdateFuncionario, onDeleteFuncionario }: FuncionariosProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -99,6 +103,16 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
       return;
     }
 
+    if (username.trim().includes(' ')) {
+      alert('O nome de usuário não pode conter espaços.');
+      return;
+    }
+    
+    if (password.trim().length < 6) {
+      alert('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
     const duplicate = funcionarios.find(g => g.username.toLowerCase() === username.toLowerCase() && g.id !== editingId);
     if (duplicate) {
       alert(`O usuário "${username}" já está sendo usado por ${duplicate.name}`);
@@ -113,12 +127,54 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
       whatsapp: whatsapp.trim()
     };
 
-    if (editingId) {
-      onUpdateFuncionario(editingId, payload);
-    } else {
-      onCreateFuncionario(payload);
-    }
+    const processData = async () => {
+      try {
+        if (!editingId && restaurantId) {
+          // 1. Auth Signup with adminSupabase
+          const safeUsername = payload.username.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const safeDomain = (identifier || restaurantId || 'servio').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const employeeEmail = `${safeUsername}@${safeDomain}.com`;
+          const { data: authData, error: authError } = await adminSupabase.auth.signUp({
+            email: employeeEmail,
+            password: payload.password,
+            options: {
+              data: {
+                role: 'waiter',
+                restaurant_id: restaurantId,
+                name: payload.name
+              }
+            }
+          });
+          
+          if (authError) {
+             alert('Erro ao criar login de funcionário: ' + authError.message);
+             return;
+          }
 
+          // 2. Insert into waiters table
+          const { data: waiterData, error: waiterError } = await supabase.from('waiters').insert({
+             restaurant_id: restaurantId,
+             name: payload.name,
+             username: payload.username,
+             password: payload.password, // storing for quick reference, not ideal but working with current system
+             is_active: true
+          }).select().single();
+          
+          if (!waiterError && waiterData) {
+            onCreateFuncionario({ ...payload, id: waiterData.id });
+          } else {
+            onCreateFuncionario(payload); // fallback
+          }
+        } else {
+          // just update locally for now
+          onUpdateFuncionario(editingId!, payload);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    
+    processData();
     setShowForm(false);
     setEditingId(null);
   };
@@ -141,43 +197,33 @@ export default function Funcionarios({ funcionarios, history, onCreateFuncionari
 
   return (
     <div className="space-y-6">
-      {/* Top Header Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500 shadow-sm">
-            <Users size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-serif text-[var(--text-main)]">Equipe</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Cadastre sua brigada, gerencie taxas de comissão e acompanhe o desempenho individual.</p>
-          </div>
-        </div>
-
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <button
           onClick={handleOpenCreate}
-          className="btn btn-primary inline-flex items-center gap-2"
+          className="btn btn-primary cursor-pointer shrink-0 inline-flex items-center gap-2"
         >
           <UserPlus size={15} />
           <span>Cadastrar Funcionário</span>
         </button>
+        
+        {/* Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Buscar por nome, e-mail ou código..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
+        </div>
       </div>
 
       {/* Waiters list representation */}
       <div className="space-y-4">
           
-          {/* Search bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-              <Search size={16} />
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar por nome, e-mail ou código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-[var(--text-main)] placeholder-zinc-500 outline-none focus:border-sky-500 transition-colors text-xs"
-            />
-          </div>
+
 
           {/* Waiter grid cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

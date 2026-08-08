@@ -132,7 +132,9 @@ export interface SystemState {
   comandas: Record<number, Comanda>;
   history: HistoricoItem[];
   rname: string;
+  ownerName?: string;
   garcons?: Funcionario[];
+  funcionarios?: Funcionario[];
 }
 
 export interface StockMovement {

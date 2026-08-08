@@ -53,17 +53,6 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
     <div className="space-y-4">
       {/* Search and Filters Toolbar */}
       <div className="flex flex-col gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
-        {/* Search bar */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
-          <input
-            type="text"
-            placeholder="Nº, mesa ou funcionário..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2.5 text-sm text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
-          />
-        </div>
         <div className="flex items-center justify-between gap-2">
           {/* Filters */}
           <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none flex-1">
@@ -110,6 +99,18 @@ export default function Comandas({ comandas, onOpenComanda }: ComandasProps) {
               <span>Aberta</span>
             </div>
           </div>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Nº, mesa ou funcionário..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2.5 text-sm text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
         </div>
       </div>
 
