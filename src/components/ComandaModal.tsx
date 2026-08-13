@@ -1,0 +1,615 @@
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { Comanda, Produto, Categoria, ItemPedido } from '../types';
+import LucideIcon from './LucideIcon';
+import { X, User, Users, Clipboard, Plus, Minus, Trash, Printer, CheckSquare, Search, BookOpen, ArrowLeft } from 'lucide-react';
+
+interface ComandaModalProps {
+  id: number;
+  comanda: Comanda;
+  products: Produto[];
+  categories: Categoria[];
+  onClose: () => void;
+  onUpdateMeta: (id: number, meta: { mesa: string; garcom: string; obs: string }) => void;
+  onUpdateItems: (id: number, items: ItemPedido[], discount?: number) => void;
+  onOpenComanda: (id: number) => void;
+  onShowPayment: (id: number) => void;
+  rname: string;
+}
+
+export default function ComandaModal({
+  id,
+  comanda,
+  products,
+  categories,
+  onClose,
+  onUpdateMeta,
+  onUpdateItems,
+  onOpenComanda,
+  onShowPayment,
+  rname
+}: ComandaModalProps) {
+  const [mesa, setMesa] = useState(comanda.mesa);
+  const [garcom, setGarcom] = useState(comanda.garcom);
+  const [obs, setObs] = useState(comanda.obs);
+  const [discount, setDiscount] = useState(comanda.discount);
+  
+  const [pickerCat, setPickerCat] = useState('all');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [tempNote, setTempNote] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'pedido' | 'cardapio' | 'info'>('pedido');
+
+  const open = comanda.status === 'aberta';
+
+  const subTotal = comanda.items.reduce((s, it) => s + it.price * it.qty, 0);
+  const totalVal = Math.max(0, subTotal - discount);
+
+  const handleMetaChange = (field: 'mesa' | 'garcom' | 'obs', val: string) => {
+    if (field === 'mesa') setMesa(val);
+    if (field === 'garcom') setGarcom(val);
+    if (field === 'obs') setObs(val);
+
+    onUpdateMeta(id, {
+      mesa: field === 'mesa' ? val : mesa,
+      garcom: field === 'garcom' ? val : garcom,
+      obs: field === 'obs' ? val : obs,
+    });
+  };
+
+  const handleOpenComanda = () => {
+    onOpenComanda(id);
+  };
+
+  const handleAddItem = (p: Produto) => {
+    // If not open, automatically open it
+    let currentItems = [...comanda.items];
+    const existing = currentItems.find(it => it.pid === p.id);
+    
+    if (existing) {
+      // Já está nos itens do pedido, ignora cliques repetidos no menu para evitar incrementos acidentais
+      return;
+    }
+
+    currentItems.push({
+      id: '_' + Math.random().toString(36).substring(2, 9),
+      pid: p.id,
+      name: p.name,
+      price: p.price,
+      qty: 1,
+      note: ''
+    });
+
+    onUpdateItems(id, currentItems, discount);
+    
+    if (comanda.status === 'livre') {
+      onOpenComanda(id);
+    }
+  };
+
+  const handleQtyChange = (itemId: string, diff: number) => {
+    let currentItems = comanda.items
+      .map(it => {
+        if (it.id === itemId) {
+          return { ...it, qty: it.qty + diff };
+        }
+        return it;
+      })
+      .filter(it => it.qty > 0);
+
+    onUpdateItems(id, currentItems, discount);
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    let currentItems = comanda.items.filter(it => it.id !== itemId);
+    onUpdateItems(id, currentItems, discount);
+  };
+
+  const handleToggleNote = (item: ItemPedido) => {
+    if (activeNoteId === item.id) {
+      setActiveNoteId(null);
+    } else {
+      setActiveNoteId(item.id);
+      setTempNote(item.note);
+    }
+  };
+
+  const handleSaveNote = (itemId: string) => {
+    let currentItems = comanda.items.map(it => {
+      if (it.id === itemId) {
+        return { ...it, note: tempNote };
+      }
+      return it;
+    });
+    onUpdateItems(id, currentItems, discount);
+    setActiveNoteId(null);
+  };
+
+  const handleDiscountChange = (val: string) => {
+    const num = parseFloat(val) || 0;
+    setDiscount(num);
+    onUpdateItems(id, comanda.items, num);
+  };
+
+  const handleClearAll = () => {
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearAll = () => {
+    onUpdateItems(id, [], 0);
+    setDiscount(0);
+    setShowClearConfirm(false);
+  };
+
+  const handlePrint = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    let paperWidth = '300px';
+    let headerMsg = '';
+    let footerMsg = '';
+    
+    try {
+      const localPrint = localStorage.getItem('servio_print_config');
+      if (localPrint) {
+        const pc = JSON.parse(localPrint);
+        if (pc.paperWidth === '58mm') paperWidth = '200px';
+        if (pc.header) headerMsg = pc.header;
+        if (pc.footer) footerMsg = pc.footer;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    const formattedDate = comanda.openedAt 
+      ? new Date(comanda.openedAt).toLocaleString('pt-BR') 
+      : new Date().toLocaleString('pt-BR');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Comanda #${id}</title>
+        <style>
+          body { font-family: monospace; max-width: ${paperWidth}; margin: 20px auto; font-size: 13px; color: #000; }
+          .c { text-align: center; }
+          .hr { border-top: 1px dashed #000; margin: 8px 0; }
+          .r { display: flex; justify-content: space-between; }
+        </style>
+      </head>
+      <body>
+        ${headerMsg ? `<div class="c" style="margin-bottom:8px;font-size:11px">${headerMsg}</div>` : ''}
+        <div class="c"><b>${rname.toUpperCase() || 'SERVIO'}</b></div>
+        <div class="c">━━━ COMANDA #${id} ━━━</div>
+        <div class="hr"></div>
+        <div>Mesa: ${mesa || '—'}</div>
+        <div>Funcionário: ${garcom || '—'}</div>
+        <div>Abertura: ${formattedDate}</div>
+        ${obs ? `<div>Obs: ${obs}</div>` : ''}
+        <div class="hr"></div>
+        <div style="font-weight:bold">ITEM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;QT&nbsp;&nbsp;&nbsp;TOTAL</div>
+        <div class="hr"></div>
+        ${comanda.items.map(it => `
+          <div class="r">
+            <span>${it.name}</span>
+            <span>${it.qty}× R$ ${(it.price * it.qty).toFixed(2)}</span>
+          </div>
+          ${it.note ? `<div style="font-size:11px;color:#555;padding-left:6px;">↳ Obs: ${it.note}</div>` : ''}
+        `).join('')}
+        <div class="hr"></div>
+        <div class="r"><span>Subtotal</span><span>R$ ${subTotal.toFixed(2)}</span></div>
+        ${discount > 0 ? `<div class="r"><span>Desconto</span><span>-R$ ${discount.toFixed(2)}</span></div>` : ''}
+        <div class="r"><b>TOTAL</b><b>R$ ${totalVal.toFixed(2)}</b></div>
+        <div class="hr"></div>
+        ${footerMsg ? `<div class="c" style="margin-top:8px;margin-bottom:8px;font-size:11px">${footerMsg}</div>` : ''}
+        <div class="c" style="font-size:11px">Impresso em ${new Date().toLocaleString('pt-BR')}</div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.print();
+  };
+
+  // Picker Filter
+  const availableProducts = products.filter(p => {
+    if (!p.avail) return false;
+    if (pickerCat !== 'all' && p.cid !== pickerCat) return false;
+    if (pickerSearch.trim() && !p.name.toLowerCase().includes(pickerSearch.toLowerCase())) return false;
+    return true;
+  });
+
+  const getCategory = (catId: string) => {
+    return categories.find(c => c.id === catId);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-40 comanda-modal-overlay">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-4xl h-[90vh] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-2xl flex flex-col comanda-modal-box"
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-panel)]">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-black text-sky-500">#{id}</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+              open ? 'text-sky-400 bg-sky-500/10 border border-sky-500/20' : 'text-[var(--text-muted)] bg-[var(--bg-hover)]'
+            }`}>
+              {open ? '● Aberta' : '○ Livre'}
+            </span>
+            {open && comanda.openedAt && (
+              <span className="text-xs text-[var(--text-muted)] hidden sm:inline">
+                Abertura: {new Date(comanda.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            {open && (
+              <button
+                onClick={handlePrint}
+                disabled={comanda.items.length === 0}
+                className="px-3 py-1.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-hover)] disabled:opacity-40 text-[10px] font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 ml-2 transition-colors"
+              >
+                <Printer size={12} />
+                <span className="hidden sm:inline">Imprimir</span>
+              </button>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content columns */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Mobile tabs */}
+          <div className="md:hidden mobile-tabs">
+            <button
+              onClick={() => setMobileTab('pedido')}
+              className={`mobile-tab-btn ${mobileTab === 'pedido' ? 'active' : ''}`}
+            >
+              <BookOpen size={14} />
+              Pedido {comanda.items.length > 0 && `(${comanda.items.length})`}
+            </button>
+            <button
+              onClick={() => setMobileTab('cardapio')}
+              className={`mobile-tab-btn ${mobileTab === 'cardapio' ? 'active' : ''}`}
+            >
+              <Search size={14} />
+              Cardápio
+            </button>
+            <button
+              onClick={() => setMobileTab('info')}
+              className={`mobile-tab-btn ${mobileTab === 'info' ? 'active' : ''}`}
+            >
+              <User size={14} />
+              Info
+            </button>
+          </div>
+
+          {/* Left panel: Info & Items list */}
+          {/* Desktop: always visible | Mobile: visible when tab=pedido or tab=info */}
+          <div className={`flex-1 overflow-y-auto p-4 border-b md:border-b-0 md:border-r border-[var(--border-color)] space-y-4 ${
+            'md:block' + (mobileTab === 'pedido' || mobileTab === 'info' ? '' : ' hidden')
+          }`}>
+            {/* Meta Inputs - Info tab mobile / always visible desktop */}
+            <div className={mobileTab === 'pedido' ? 'hidden md:block' : ''}>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Users size={12} />
+                    <span>Mesa / Cliente</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={mesa}
+                    onChange={(e) => handleMetaChange('mesa', e.target.value)}
+                    placeholder="Ex: Mesa 5, João"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <User size={12} />
+                    <span>Funcionário</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={garcom}
+                    onChange={(e) => handleMetaChange('garcom', e.target.value)}
+                    placeholder="Ex: Lucas"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <Clipboard size={12} />
+                  <span>Observações Gerais</span>
+                </label>
+                <input
+                  type="text"
+                  value={obs}
+                  onChange={(e) => handleMetaChange('obs', e.target.value)}
+                  placeholder="Ex: Sem cebola nos pratos, gelo separado"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-main)] outline-none focus:border-sky-500"
+                />
+              </div>
+            </div>
+
+            {/* Items display */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-[var(--bg-hover)]">
+                <h3 className="text-sm font-bold text-[var(--text-main)]">Itens do Pedido</h3>
+                {open && comanda.items.length > 0 && (
+                  <button
+                    onClick={handleClearAll}
+                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-medium cursor-pointer"
+                  >
+                    <Trash size={12} />
+                    <span>Limpar tudo</span>
+                  </button>
+                )}
+              </div>
+
+              {comanda.items.length === 0 ? (
+                <div className="py-12 text-center text-[#484F58]">
+                  <BookOpen size={32} className="mx-auto mb-2 opacity-80" />
+                  <p className="text-xs font-semibold">Comanda vazia.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">Adicione produtos ao lado para iniciar o pedido.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {comanda.items.map(item => (
+                    <div
+                      key={item.id}
+                      className="p-3 bg-[var(--bg-base)] border border-[var(--bg-hover)] rounded-xl flex items-start gap-3 hover:border-sky-500/30 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold text-[var(--text-main)] block truncate">{item.name}</span>
+                        <span className="text-[10px] text-[var(--text-muted)] block mt-0.5">
+                          R$ {item.price.toFixed(2)} × {item.qty} = <strong className="text-[var(--text-main)]">R$ {(item.price * item.qty).toFixed(2)}</strong>
+                        </span>
+                        {item.note && (
+                          <span className="inline-block text-[9px] text-sky-500 bg-sky-500/5 px-1.5 py-0.5 rounded border border-sky-500/10 mt-1">
+                            Obs: {item.note}
+                          </span>
+                        )}
+
+                        {activeNoteId === item.id && (
+                          <div className="flex gap-2 mt-2">
+                            <input
+                              type="text"
+                              value={tempNote}
+                              onChange={(e) => setTempNote(e.target.value)}
+                              placeholder="Observação do item..."
+                              className="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md px-2 py-1 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
+                            />
+                            <button
+                              onClick={() => handleSaveNote(item.id)}
+                              className="px-2 py-1 bg-sky-500 text-black font-bold text-[10px] rounded hover:bg-sky-600 cursor-pointer"
+                            >
+                              Ok
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleQtyChange(item.id, -1)}
+                            className="w-5 h-5 sm:w-5 sm:h-5 qty-btn-mobile rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="text-xs font-bold font-mono text-[var(--text-main)] min-w-[20px] text-center">
+                            {item.qty}
+                          </span>
+                          <button
+                            onClick={() => handleQtyChange(item.id, 1)}
+                            className="w-5 h-5 sm:w-5 sm:h-5 qty-btn-mobile rounded bg-[var(--bg-hover)] hover:bg-sky-500 hover:text-black text-[var(--text-main)] flex items-center justify-center cursor-pointer transition-colors"
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => handleToggleNote(item)}
+                            className="text-xs font-semibold text-sky-600 hover:text-sky-700 underline cursor-pointer"
+                          >
+                            {item.note ? 'Editar observação' : 'Adicionar observação'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right panel: Product picker */}
+          {/* Desktop: always visible | Mobile: visible when tab=cardapio */}
+          <div className={`w-full md:w-80 flex flex-col bg-[var(--bg-panel)] ${
+            mobileTab === 'cardapio' ? '' : 'hidden md:flex'
+          }`}>
+            <div className="p-3 border-b border-[var(--border-color)] shrink-0">
+              <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                Cardápio de Lançamento
+              </span>
+
+              {/* Categories horizontal list */}
+              <div className="flex gap-1 overflow-x-auto pb-1.5 scrollbar-thin">
+                <button
+                  onClick={() => setPickerCat('all')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
+                    pickerCat === 'all'
+                      ? 'bg-sky-500 border-sky-500 text-black'
+                      : 'bg-[var(--bg-hover)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  Todos
+                </button>
+                {categories.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setPickerCat(c.id)}
+                    className={`px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer ${
+                      pickerCat === c.id
+                        ? 'text-[var(--text-main)]'
+                        : 'bg-[var(--bg-hover)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    }`}
+                    style={pickerCat === c.id ? { backgroundColor: c.color, borderColor: c.color } : {}}
+                  >
+                    <LucideIcon name={c.icon} size={11} />
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Search picker products */}
+              <div className="relative mt-2">
+                <Search className="absolute left-2.5 top-2.5 text-[#484F58]" size={13} />
+                <input
+                  type="text"
+                  placeholder="Buscar produto..."
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+                />
+              </div>
+            </div>
+
+            {/* List of products to tap/click */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+              {availableProducts.length === 0 ? (
+                <div className="py-8 text-center text-[#484F58]">
+                  <p className="text-[11px]">Nenhum produto disponível.</p>
+                </div>
+              ) : (
+                availableProducts.map(p => {
+                  const catInfo = getCategory(p.cid);
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => handleAddItem(p)}
+                      className="p-2.5 bg-[var(--bg-card)] border border-[var(--bg-hover)] hover:border-sky-500/50 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="text-xs font-semibold text-[var(--text-main)] block truncate">{p.name}</span>
+                        {catInfo && (
+                          <span
+                            className="text-[9px] font-medium"
+                            style={{ color: catInfo.color }}
+                          >
+                            {catInfo.name}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-black text-sky-500 shrink-0">
+                        R$ {p.price.toFixed(2)}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-[var(--border-color)] bg-[var(--bg-panel)] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-4">
+            <div>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Subtotal</span>
+              <span className="text-sm font-bold text-[var(--text-main)]">R$ {subTotal.toFixed(2)}</span>
+            </div>
+
+            <div>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Desconto R$</span>
+              <input
+                type="number"
+                min="0"
+                max={subTotal}
+                step="0.50"
+                value={discount || ''}
+                onChange={(e) => handleDiscountChange(e.target.value)}
+                placeholder="0.00"
+                className="w-16 bg-[var(--bg-base)] border border-[var(--border-color)] rounded px-1.5 py-0.5 text-xs text-[var(--text-main)] text-center outline-none focus:border-sky-500"
+              />
+            </div>
+
+            <div>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Total</span>
+              <span className="text-xl font-extrabold text-sky-500">R$ {totalVal.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={onClose}
+              className="flex-1 sm:flex-initial px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] hover:bg-[var(--bg-hover)] disabled:opacity-40 text-xs font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ArrowLeft size={14} />
+              <span>Voltar</span>
+            </button>
+            {open && (
+              <button
+                onClick={() => onShowPayment(id)}
+                disabled={comanda.items.length === 0}
+                className="flex-1 sm:flex-initial px-5 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-40 text-[var(--text-main)] text-xs font-black rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <CheckSquare size={14} />
+                <span>Fechar e cobrar</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Custom Confirmation Dialog for Clear Items */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 text-left"
+          >
+            <h3 className="text-sm font-bold text-[var(--text-main)]">Limpar Itens</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Tem certeza que deseja remover todos os itens?
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-[var(--text-main)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={confirmClearAll}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-[var(--text-main)] text-xs font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Sim
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}

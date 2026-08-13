@@ -1,0 +1,428 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Funcionario, HistoricoItem } from '../types';
+import ConfirmModal from './ConfirmModal';
+import { 
+  Users, 
+  UserPlus, 
+  Search, 
+  Award, 
+  Phone, 
+  Mail, 
+  Plus, 
+  Percent, 
+  Check, 
+  X, 
+  Edit2, 
+  Trash2, 
+  UserCheck, 
+  UserX,
+  Sparkles,
+  TrendingUp,
+  DollarSign
+} from 'lucide-react';
+
+interface FuncionariosProps {
+  restaurantId?: string;
+  identifier?: string;
+  funcionarios: Funcionario[];
+  history: HistoricoItem[];
+  onCreateFuncionario: (g: Omit<Funcionario, 'id'> & { id?: string }) => void;
+  onUpdateFuncionario: (id: string, fields: Partial<Funcionario>) => void;
+  onDeleteFuncionario: (id: string) => void;
+}
+
+import { supabase } from "../supabaseClient";
+
+export default function Funcionarios({ funcionarios, history, restaurantId, identifier, onCreateFuncionario, onUpdateFuncionario, onDeleteFuncionario }: FuncionariosProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [employeeToDelete, setEmployeeToDelete] = useState<{id: string, name: string} | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Form State
+  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+
+  // Stats calculation
+  const getFuncionarioStats = (waiterName: string) => {
+    const waiterSales = history.filter(h => h.garcom.toLowerCase() === waiterName.toLowerCase());
+    const totalSalesVal = waiterSales.reduce((sum, h) => sum + h.total, 0);
+    const orderCount = waiterSales.length;
+    const avgTicket = orderCount > 0 ? totalSalesVal / orderCount : 0;
+    
+    // Find commission rate
+    const gObj = funcionarios.find(g => g.name.toLowerCase() === waiterName.toLowerCase());
+    const rate = gObj ? gObj.commissionRate : 10;
+    const totalCommission = waiterSales.reduce((sum, h) => {
+      const commRate = gObj ? gObj.commissionRate : 10;
+      return sum + (h.total * (commRate / 100));
+    }, 0);
+
+    return {
+      sales: totalSalesVal,
+      count: orderCount,
+      avgTicket,
+      commission: totalCommission
+    };
+  };
+
+  const handleOpenCreate = () => {
+    setEditingId(null);
+    setName('');
+    setUsername('');
+    setPassword('');
+    setEmail('');
+    setWhatsapp('');
+    setShowForm(true);
+  };
+
+  const handleOpenEdit = (g: Funcionario) => {
+    setEditingId(g.id);
+    setName(g.name);
+    setUsername(g.username || '');
+    setPassword(g.password || '');
+    setEmail(g.email || '');
+    setWhatsapp(g.whatsapp || '');
+    setShowForm(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      alert('Nome é obrigatório');
+      return;
+    }
+    if (!username.trim()) {
+      alert('Nome de usuário é obrigatório');
+      return;
+    }
+    if (!password.trim()) {
+      alert('Senha é obrigatória');
+      return;
+    }
+
+    if (username.trim().includes(' ')) {
+      alert('O nome de usuário não pode conter espaços.');
+      return;
+    }
+    
+    if (password.trim().length < 6) {
+      alert('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    const duplicate = funcionarios.find(g => g.username.toLowerCase() === username.toLowerCase() && g.id !== editingId);
+    if (duplicate) {
+      alert(`O usuário "${username}" já está sendo usado por ${duplicate.name}`);
+      return;
+    }
+
+    const payload = {
+      name: name.trim(),
+      username: username.trim(),
+      password: password.trim(),
+      email: email.trim(),
+      whatsapp: whatsapp.trim()
+    };
+
+    const processData = async () => {
+      try {
+        if (!editingId && restaurantId) {
+          // Insert into waiters table
+          const { data: waiterData, error: waiterError } = await supabase.from('waiters').insert({
+             restaurant_id: restaurantId,
+             name: payload.name,
+             code: payload.username, // using username as code for login/pin
+             phone: payload.whatsapp,
+             email: payload.email,
+             is_active: true
+          }).select().single();
+          
+          if (!waiterError && waiterData) {
+            onCreateFuncionario({ ...payload, id: waiterData.id });
+          } else {
+            console.error('Waiters insert error:', waiterError);
+            onCreateFuncionario(payload); // fallback se a tabela falhar
+          }
+        } else {
+          // just update locally for now
+          onUpdateFuncionario(editingId!, payload);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    
+    processData();
+    setShowForm(false);
+    setEditingId(null);
+  };
+
+  const handleDelete = (id: string, gName: string) => {
+    setEmployeeToDelete({ id, name: gName });
+  };
+
+  const filteredFuncionarios = funcionarios.filter(g => 
+    g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    g.id.substring(0, 4).includes(searchTerm) ||
+    g.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatCurrency = (val: number) => {
+    return 'R$ ' + val.toFixed(2).replace('.', ',');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+        <button
+          onClick={handleOpenCreate}
+          className="btn btn-primary cursor-pointer shrink-0 inline-flex items-center gap-2"
+        >
+          <UserPlus size={15} />
+          <span>Cadastrar Funcionário</span>
+        </button>
+        
+        {/* Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={15} />
+          <input
+            type="text"
+            placeholder="Buscar por nome, e-mail ou código..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
+          />
+        </div>
+      </div>
+
+      {/* Waiters list representation */}
+      <div className="space-y-4">
+          
+
+
+          {/* Waiter grid cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredFuncionarios.length === 0 ? (
+              <div className="col-span-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl p-12 text-center text-[var(--text-muted)]">
+                <Users size={40} className="mx-auto mb-3 opacity-30 text-sky-500" />
+                <h3 className="text-sm font-bold text-[var(--text-main)]">Nenhum funcionário cadastrado</h3>
+                <p className="text-xs text-zinc-500 mt-1">Clique em "Cadastrar Funcionário" para registrar seu primeiro funcionário.</p>
+              </div>
+            ) : (
+              filteredFuncionarios.map(g => {
+                const stats = getFuncionarioStats(g.name);
+                return (
+                  <motion.div
+                    key={g.id}
+                    layout
+                    className={`bg-[var(--bg-card)] border ${g.active ? 'border-[var(--border-color)]' : 'border-zinc-300 opacity-75'} rounded-2xl p-5 flex flex-col justify-between hover:shadow-lg transition-all relative overflow-hidden`}
+                  >
+                    {/* Waiter Profile Details */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-[var(--border-color)] flex items-center justify-center font-serif text-sm text-sky-500 font-bold">
+                          <Users size={18} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-[var(--text-main)] leading-tight flex items-center gap-1">
+                            {g.name}
+                          </h3>
+                          <span className="inline-flex items-center gap-1 text-[10px] text-sky-500 bg-sky-500/5 border border-sky-500/10 px-1.5 py-0.5 rounded-md mt-1 font-semibold">
+                            Login: {g.username}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Contact metadata */}
+                      <div className="space-y-1.5 border-t border-[var(--border-color)]/40 pt-3 mb-4 text-[11px] text-zinc-500">
+                        {g.whatsapp && (
+                          <div className="flex items-center gap-2">
+                            <Phone size={11} className="text-zinc-500 shrink-0" />
+                            <span>{g.whatsapp}</span>
+                          </div>
+                        )}
+                        {g.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail size={11} className="text-zinc-500 shrink-0 animate-none" />
+                            <span className="truncate">{g.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Live stats block */}
+                    <div className="bg-[var(--bg-base)] rounded-xl p-3 grid grid-cols-2 gap-2 text-[10px] border border-[var(--border-color)]/40 mb-4">
+                      <div>
+                        <span className="block text-zinc-500 font-bold uppercase tracking-wider">Vendas Fechadas</span>
+                        <span className="text-xs font-bold text-[var(--text-main)] font-mono mt-0.5 block">{formatCurrency(stats.sales)}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 font-bold uppercase tracking-wider">Comissão Devida</span>
+                        <span className="text-xs font-bold text-emerald-500 font-mono mt-0.5 block">{formatCurrency(stats.commission)}</span>
+                      </div>
+                      <div className="col-span-2 pt-1.5 border-t border-[var(--border-color)]/20 flex justify-between text-zinc-500">
+                        <span>Mesas/Pedidos: <strong className="text-[var(--text-main)]">{stats.count}</strong></span>
+                        <span>Tkt Médio: <strong className="text-[var(--text-main)]">{formatCurrency(stats.avgTicket)}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Waiter Actions row */}
+                    <div className="flex justify-end items-center gap-1.5 pt-2 border-t border-[var(--border-color)]/30">
+                      <button
+                        onClick={() => handleOpenEdit(g)}
+                        className="p-1.5 text-zinc-500 hover:text-sky-500 hover:bg-zinc-900 rounded-md transition-all cursor-pointer"
+                        title="Editar Informações"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => onUpdateFuncionario(g.id, { active: !g.active })}
+                        className={`p-1.5 rounded-md transition-all cursor-pointer ${
+                          g.active ? 'text-zinc-500 hover:text-red-500 hover:bg-red-500/5' : 'text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/5'
+                        }`}
+                        title={g.active ? 'Desativar Funcionário' : 'Ativar Funcionário'}
+                      >
+                        {g.active ? <UserX size={13} /> : <UserCheck size={13} />}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(g.id, g.name)}
+                        className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-zinc-900 rounded-md transition-all cursor-pointer"
+                        title="Excluir Definitivamente"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+      {/* Form panel Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full sm:max-w-md bg-[var(--bg-card)] border border-[var(--border-color)] sm:rounded-2xl rounded-t-2xl p-5 shadow-2xl relative overflow-y-auto max-h-[90dvh]"
+          >
+            <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)] mb-4">
+              <h3 className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles size={13} className="text-sky-500" />
+                <span>{editingId ? 'Editar Funcionário' : 'Novo Funcionário'}</span>
+              </h3>
+              <button
+                onClick={() => { setShowForm(false); setEditingId(null); }}
+                className="text-zinc-500 hover:text-[var(--text-main)] cursor-pointer p-1"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Nome */}
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Nome Completo</label>
+                <input
+                  type="text"
+                  required
+                  placeholder=""
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-xs text-[var(--text-main)] outline-none focus:border-sky-500 font-sans"
+                />
+              </div>
+
+              {/* Username e Senha */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Nome de Usuário (Login)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder=""
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-xs text-[var(--text-main)] font-mono outline-none focus:border-sky-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Senha para Login</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder=""
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-xs text-[var(--text-main)] font-mono outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              {/* Email e Whatsapp */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">E-mail (Opcional)</label>
+                  <input
+                    type="email"
+                    placeholder=""
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-xs text-[var(--text-main)] outline-none focus:border-sky-500 font-sans"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">WhatsApp (Opcional)</label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-white dark:bg-[var(--bg-base)] border border-zinc-300 dark:border-zinc-700 shadow-sm rounded-xl text-xs text-[var(--text-main)] outline-none focus:border-sky-500 font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Form buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setEditingId(null); }}
+                  className="w-1/2 py-2 bg-zinc-100 dark:bg-zinc-800 text-[var(--text-main)] rounded-xl font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                >
+                  <Check size={14} />
+                  <span>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</span>
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={employeeToDelete !== null}
+        title="Excluir Funcionário"
+        message={`Tem certeza de que deseja excluir o funcionário "${employeeToDelete?.name}"? Esta ação não pode ser desfeita.`}
+        confirmText="Excluir"
+        onConfirm={() => {
+          if (employeeToDelete) onDeleteFuncionario(employeeToDelete.id);
+          setEmployeeToDelete(null);
+        }}
+        onCancel={() => setEmployeeToDelete(null)}
+      />
+    </div>
+  );
+}
