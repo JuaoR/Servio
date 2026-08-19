@@ -1,0 +1,292 @@
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Wallet,
+  UtensilsCrossed,
+  Tags,
+  Users,
+  History,
+  Settings,
+  BarChart2,
+  ChevronsUpDown,
+  LogOut,
+  Moon,
+  Sun,
+  Monitor,
+  Store,
+  ChefHat,
+} from 'lucide-react'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { useTheme } from '@/context/theme-provider'
+
+type View =
+  | 'dashboard'
+  | 'comandas'
+  | 'caixa'
+  | 'produtos'
+  | 'categorias'
+  | 'funcionarios'
+  | 'historico'
+  | 'relatorios'
+  | 'configuracoes'
+
+interface AppSidebarProps {
+  currentView: View
+  onNavigate: (view: View) => void
+  rname: string
+  ownerName: string
+  logoUrl?: string
+  activeComandasCount: number
+  caixaAtiva: boolean
+  onLogout: () => void
+}
+
+export function AppSidebar({
+  currentView,
+  onNavigate,
+  rname,
+  ownerName,
+  logoUrl,
+  activeComandasCount,
+  caixaAtiva,
+  onLogout,
+}: AppSidebarProps) {
+  const { isMobile, setOpenMobile } = useSidebar()
+  const { theme, setTheme, resolvedTheme } = useTheme()
+
+  const nav = (view: View) => {
+    onNavigate(view)
+    if (isMobile) setOpenMobile(false)
+  }
+
+  const initials = ownerName
+    ? ownerName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'SV'
+
+  const mainItems = [
+    { view: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
+    { view: 'comandas' as View, label: 'Comandas', icon: ClipboardList, badge: activeComandasCount > 0 ? String(activeComandasCount) : undefined, badgeColor: 'bg-emerald-500' },
+    { view: 'caixa' as View, label: 'Caixa / PDV', icon: Wallet, badge: caixaAtiva ? 'ABERTO' : 'FECHADO', badgeColor: caixaAtiva ? 'bg-emerald-500 text-black' : 'bg-red-500/20 text-red-400' },
+  ]
+
+  const catalogItems = [
+    { view: 'produtos' as View, label: 'Produtos', icon: UtensilsCrossed },
+    { view: 'categorias' as View, label: 'Categorias', icon: Tags },
+    { view: 'funcionarios' as View, label: 'Funcionários', icon: Users },
+  ]
+
+  const reportItems = [
+    { view: 'historico' as View, label: 'Histórico de Vendas', icon: History },
+    { view: 'relatorios' as View, label: 'Relatórios', icon: BarChart2 },
+  ]
+
+  return (
+    <Sidebar collapsible="icon" variant="floating">
+      {/* Header / Logo */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="gap-3 cursor-default hover:bg-transparent active:bg-transparent">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden bg-sky-600/10">
+                <img
+                  src={logoUrl || '/images/logo.png'}
+                  alt="Servio"
+                  className="w-6 h-6 object-contain"
+                />
+              </div>
+              <div className="grid flex-1 text-start leading-tight">
+                <span className="truncate font-bold text-sky-600 font-serif tracking-tight text-base">Servio</span>
+                <span className="truncate text-xs text-muted-foreground">{rname || 'Meu Restaurante'}</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {/* Operação */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Operação</SidebarGroupLabel>
+          <SidebarMenu>
+            {mainItems.map(({ view, label, icon: Icon, badge, badgeColor }) => (
+              <SidebarMenuItem key={view}>
+                <SidebarMenuButton
+                  isActive={currentView === view}
+                  tooltip={label}
+                  onClick={() => nav(view)}
+                  className="cursor-pointer"
+                >
+                  <Icon />
+                  <span>{label}</span>
+                  {badge && (
+                    <span className={`ms-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${badgeColor}`}>
+                      {badge}
+                    </span>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Catálogo */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Catálogo</SidebarGroupLabel>
+          <SidebarMenu>
+            {catalogItems.map(({ view, label, icon: Icon }) => (
+              <SidebarMenuItem key={view}>
+                <SidebarMenuButton
+                  isActive={currentView === view}
+                  tooltip={label}
+                  onClick={() => nav(view)}
+                  className="cursor-pointer"
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Relatórios */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Relatórios</SidebarGroupLabel>
+          <SidebarMenu>
+            {reportItems.map(({ view, label, icon: Icon }) => (
+              <SidebarMenuItem key={view}>
+                <SidebarMenuButton
+                  isActive={currentView === view}
+                  tooltip={label}
+                  onClick={() => nav(view)}
+                  className="cursor-pointer"
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Config */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={currentView === 'configuracoes'}
+                tooltip="Configurações"
+                onClick={() => nav('configuracoes')}
+                className="cursor-pointer"
+              >
+                <Settings />
+                <span>Configurações</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+
+      {/* Footer / User */}
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+                >
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-sky-600/10 text-sky-600 font-bold text-sm">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-start text-sm leading-tight">
+                    <span className="truncate font-semibold">{ownerName || 'Admin'}</span>
+                    <span className="truncate text-xs text-muted-foreground">{rname || 'Restaurante'}</span>
+                  </div>
+                  <ChevronsUpDown className="ms-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                side={isMobile ? 'bottom' : 'right'}
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarFallback className="rounded-lg bg-sky-600/10 text-sky-600 font-bold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-start text-sm leading-tight">
+                      <span className="truncate font-semibold">{ownerName || 'Admin'}</span>
+                      <span className="truncate text-xs text-muted-foreground">{rname || 'Restaurante'}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 pb-1">Tema</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setTheme('light')} className="cursor-pointer">
+                    <Sun className="mr-2 size-4" />
+                    <span>Claro</span>
+                    {theme === 'light' && <span className="ms-auto text-xs text-primary">✓</span>}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('dark')} className="cursor-pointer">
+                    <Moon className="mr-2 size-4" />
+                    <span>Escuro</span>
+                    {theme === 'dark' && <span className="ms-auto text-xs text-primary">✓</span>}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('system')} className="cursor-pointer">
+                    <Monitor className="mr-2 size-4" />
+                    <span>Sistema</span>
+                    {theme === 'system' && <span className="ms-auto text-xs text-primary">✓</span>}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => nav('configuracoes')} className="cursor-pointer">
+                  <Store className="mr-2 size-4" />
+                  <span>Configurações</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={onLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 size-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
+  )
+}

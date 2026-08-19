@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Categoria, Produto, Comanda, HistoricoItem } from '../types';
-import { ClipboardList, AlertTriangle, Landmark, Scale, Plus, Calendar, ArrowRight, DollarSign } from 'lucide-react';
+import { Comanda, HistoricoItem } from '../types';
+import { ClipboardList, Landmark, Scale, ArrowRight, DollarSign, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 
 interface DashboardProps {
   comandas: Record<number, Comanda>;
@@ -15,27 +15,23 @@ interface DashboardProps {
 export default function Dashboard({ comandas, history, rname, ownerName, onNavigate, onOpenComanda }: DashboardProps) {
 
   const abertas = Object.values(comandas).filter(c => c.status === 'aberta');
-  
+
   const todayStr = new Date().toDateString();
   const todayHistory = history.filter(h => new Date(h.closedAt).toDateString() === todayStr);
   const faturamentoHoje = todayHistory.reduce((sum, h) => sum + h.total, 0);
   const ticketMedio = todayHistory.length > 0 ? faturamentoHoje / todayHistory.length : 0;
 
-  // Most sold item calculation
   const itemCounts: Record<string, number> = {};
   todayHistory.forEach(h => {
-    h.items.forEach(it => {
-      itemCounts[it.name] = (itemCounts[it.name] || 0) + it.qty;
-    });
+    h.items.forEach(it => { itemCounts[it.name] = (itemCounts[it.name] || 0) + it.qty; });
   });
   const topItem = Object.entries(itemCounts).sort((a, b) => b[1] - a[1])[0];
 
   const subTotal = (c: Comanda) => c.items.reduce((s, it) => s + it.price * it.qty, 0);
   const cmdTotal = (c: Comanda) => Math.max(0, subTotal(c) - (c.discount || 0));
 
-  const formatCurrency = (val: number) => {
-    return 'R$ ' + val.toFixed(2).replace('.', ',');
-  };
+  const formatCurrency = (val: number) =>
+    val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const getElapsedStr = (openedAt: number | null) => {
     if (!openedAt) return '';
@@ -60,221 +56,173 @@ export default function Dashboard({ comandas, history, rname, ownerName, onNavig
     dinheiro: { ic: '💵', lb: 'Dinheiro', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
     credito: { ic: '💳', lb: 'Crédito', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
     debito: { ic: '🏧', lb: 'Débito', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
-    pix: { ic: '⚡', lb: 'Pix', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' }
+    pix: { ic: '⚡', lb: 'Pix', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
   };
+
+  const stats = [
+    {
+      label: 'Comandas Abertas',
+      value: String(abertas.length),
+      sub: 'De 100 mesas disponíveis',
+      icon: ClipboardList,
+      trend: null,
+    },
+    {
+      label: 'Faturamento Hoje',
+      value: formatCurrency(faturamentoHoje),
+      sub: `${todayHistory.length} comanda(s) fechada(s)`,
+      icon: Landmark,
+      trend: faturamentoHoje > 0 ? 'up' : null,
+    },
+    {
+      label: 'Ticket Médio',
+      value: formatCurrency(ticketMedio),
+      sub: topItem ? `Top: ${topItem[0]}` : 'Sem vendas hoje',
+      icon: Scale,
+      trend: ticketMedio > 0 ? 'up' : null,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Greeting and Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="text-[#281f1f]">
-          <h1 className="text-2xl font-black tracking-tight">
-            {getGreeting()}, {ownerName || 'Visitante'}!
-          </h1>
-          <p className="text-[var(--text-muted)] text-xs flex items-center gap-2 mt-1">
-            <Calendar size={13} />
-            <span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          </p>
-        </div>
+      {/* Greeting */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          {getGreeting()}, {ownerName || 'Visitante'}!
+        </h1>
+        <p className="text-muted-foreground text-sm flex items-center gap-1.5 mt-1">
+          <Calendar size={13} />
+          {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
-        >
-          <div className="flex justify-between items-start">
+      {/* Stats Grid — 3 cards iguais ao template */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {stats.map(({ label, value, sub, icon: Icon, trend }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.07 }}
+            className="rounded-xl border bg-card text-card-foreground shadow-sm p-6"
+          >
+            <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <p className="text-sm font-medium text-muted-foreground">{label}</p>
+              <Icon className="h-4 w-4 text-muted-foreground" />
+            </div>
             <div>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Comandas Abertas</p>
-              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{abertas.length}</h3>
+              <div className="text-2xl font-bold">{value}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                {trend === 'up' && <TrendingUp size={11} className="text-emerald-500" />}
+                {trend === 'down' && <TrendingDown size={11} className="text-red-500" />}
+                {sub}
+              </p>
             </div>
-            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
-              <ClipboardList size={20} />
-            </div>
-          </div>
-          <p className="text-xs text-[var(--text-muted)] mt-3">De 100 mesas/comandas disponíveis</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Faturamento Hoje</p>
-              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{formatCurrency(faturamentoHoje)}</h3>
-            </div>
-            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
-              <Landmark size={20} />
-            </div>
-          </div>
-          <p className="text-xs text-[var(--text-muted)] mt-3">{todayHistory.length} comanda(s) fechada(s)</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 border-l-4 border-l-blue-500"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Ticket Médio</p>
-              <h3 className="text-3xl font-black text-[var(--text-main)] mt-2">{formatCurrency(ticketMedio)}</h3>
-            </div>
-            <div className="p-2 bg-sky-500/10 rounded-lg text-sky-500">
-              <Scale size={20} />
-            </div>
-          </div>
-          <p className="text-xs text-[var(--text-muted)] mt-3 truncate">
-            {topItem ? `Top venda: ${topItem[0]}` : 'Sem vendas hoje ainda'}
-          </p>
-        </motion.div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Main Grid Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Comandas */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col md:h-[400px]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
-              <span>Comandas em Aberto ({abertas.length})</span>
-            </h2>
+      {/* Main Grid */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Comandas em Aberto */}
+        <div className="rounded-xl border bg-card shadow-sm flex flex-col" style={{ minHeight: 380 }}>
+          <div className="p-6 pb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold leading-none tracking-tight">Comandas em Aberto</h2>
+              <p className="text-sm text-muted-foreground mt-1">{abertas.length} ativa(s) agora</p>
+            </div>
             <button
               onClick={() => onNavigate('comandas')}
-              className="text-xs text-sky-500 hover:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer font-medium"
             >
-              <span>Ver todas</span>
-              <ArrowRight size={14} />
+              Ver todas <ArrowRight size={13} />
             </button>
           </div>
-
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
             {abertas.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-[#484F58] py-8">
-                <ClipboardList size={36} className="mb-2" />
-                <p className="text-sm">Nenhuma comanda aberta no momento.</p>
+              <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8 gap-2">
+                <ClipboardList size={32} className="opacity-40" />
+                <p className="text-sm">Nenhuma comanda aberta.</p>
                 <button
                   onClick={() => onNavigate('comandas')}
-                  className="text-xs text-sky-500 hover:underline mt-2 cursor-pointer font-medium"
+                  className="text-xs text-primary hover:underline cursor-pointer font-medium"
                 >
                   Abrir nova comanda
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {abertas
-                  .sort((a, b) => a.id - b.id)
-                  .map(c => {
-                    return (
-                      <motion.div
-                        key={c.id}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => onOpenComanda(c.id)}
-                        className={`p-2 rounded-xl border text-center cursor-pointer transition-all bg-sky-500/10 border-sky-500/30 hover:border-sky-500`}
-                      >
-                        <span className={`text-xl font-black block text-[var(--text-main)]`}>
-                          #{c.id}
-                        </span>
-                        <span className="text-[11px] text-[var(--text-muted)] font-medium block mt-1 truncate">
-                          {c.mesa || `Comanda ${c.id}`}
-                        </span>
-                        <div className="flex items-center justify-center gap-1.5 mt-2">
-                          <span className={`text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-sky-500/15 text-sky-500`}>
-                            {getElapsedStr(c.openedAt)}
-                          </span>
-                        </div>
-                        <span className="text-xs font-bold text-[var(--text-main)] block mt-2">
-                          {formatCurrency(cmdTotal(c))}
-                        </span>
-                      </motion.div>
-                    );
-                  })}
+                {abertas.sort((a, b) => a.id - b.id).map(c => (
+                  <motion.div
+                    key={c.id}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => onOpenComanda(c.id)}
+                    className="p-3 rounded-lg border border-border bg-muted/40 hover:bg-accent hover:border-primary/40 text-center cursor-pointer transition-all"
+                  >
+                    <span className="text-xl font-bold block text-foreground">#{c.id}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium block mt-0.5 truncate">
+                      {c.mesa || `Mesa ${c.id}`}
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-primary block mt-1.5 bg-primary/10 rounded px-1.5 py-0.5">
+                      {getElapsedStr(c.openedAt)}
+                    </span>
+                    <span className="text-xs font-bold text-foreground block mt-1.5">
+                      {formatCurrency(cmdTotal(c))}
+                    </span>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 flex flex-col md:h-[400px]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-[var(--text-main)] tracking-tight">Últimas Vendas Fechadas</h2>
+        {/* Últimas Vendas */}
+        <div className="rounded-xl border bg-card shadow-sm flex flex-col" style={{ minHeight: 380 }}>
+          <div className="p-6 pb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold leading-none tracking-tight">Últimas Vendas</h2>
+              <p className="text-sm text-muted-foreground mt-1">Comandas fechadas recentemente</p>
+            </div>
             <button
               onClick={() => onNavigate('historico')}
-              className="text-xs text-sky-500 hover:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+              className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer font-medium"
             >
-              <span>Relatório completo</span>
-              <ArrowRight size={14} />
+              Relatório <ArrowRight size={13} />
             </button>
           </div>
-
-          <div className="flex-1 overflow-y-auto pr-1">
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
             {recentHistory.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-[#484F58] py-8">
-                <DollarSign size={36} className="mb-2" />
-                <p className="text-sm">Nenhuma venda registrada hoje.</p>
+              <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-8 gap-2">
+                <DollarSign size={32} className="opacity-40" />
+                <p className="text-sm">Nenhuma venda hoje.</p>
               </div>
             ) : (
-              <>
-                {/* Desktop: tabela */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-left text-sm border-collapse">
-                    <thead>
-                      <tr className="border-b border-[var(--border-color)]">
-                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">ID</th>
-                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Mesa</th>
-                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Pagamento</th>
-                        <th className="pb-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentHistory.map(h => {
-                        const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10' };
-                        return (
-                          <tr key={h.id} className="border-b border-[var(--bg-hover)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors">
-                            <td className="py-2.5 font-semibold text-[var(--text-main)]">#{h.cmdId}</td>
-                            <td className="py-2.5 text-[var(--text-muted)] truncate max-w-[100px]">{h.mesa || '—'}</td>
-                            <td className="py-2.5">
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${pay.color}`}>
-                                <span>{pay.ic}</span>
-                                <span>{pay.lb}</span>
-                              </span>
-                            </td>
-                            <td className="py-2.5 font-bold text-[var(--text-main)] text-right">{formatCurrency(h.total)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Mobile: lista de cards */}
-                <div className="sm:hidden space-y-2">
-                  {recentHistory.map(h => {
-                    const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-gray-400 bg-gray-500/10 border-gray-500/20' };
-                    return (
-                      <div key={h.id} className="flex items-center justify-between p-3 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-bold text-[var(--text-main)]">#{h.cmdId} {h.mesa ? `· ${h.mesa}` : ''}</span>
-                          <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border w-fit ${pay.color}`}>
-                            <span>{pay.ic}</span>
-                            <span>{pay.lb}</span>
-                          </span>
+              <div className="space-y-1">
+                {recentHistory.map(h => {
+                  const pay = PAYMENT_LABELS[h.payMethod] || { ic: '❓', lb: h.payMethod, color: 'text-muted-foreground' };
+                  return (
+                    <div
+                      key={h.id}
+                      className="flex items-center justify-between py-2.5 border-b border-border last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-foreground shrink-0">
+                          {pay.ic}
                         </div>
-                        <span className="text-base font-extrabold text-[var(--text-main)]">{formatCurrency(h.total)}</span>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            #{h.cmdId}{h.mesa ? ` · ${h.mesa}` : ''}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{pay.lb}</p>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </>
+                      <span className="text-sm font-bold text-foreground">{formatCurrency(h.total)}</span>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

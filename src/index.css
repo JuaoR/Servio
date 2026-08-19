@@ -909,3 +909,22 @@
   }
 }
 
+
+/* ======== SHADCN SIDEBAR LAYER ======== */
+/* Remove estilos legados do shell antigo */
+.mobile-bottom-nav,
+.mobile-more-sheet,
+.mobile-header {
+  display: none !important;
+}
+
+/* Ajuste para o SidebarInset ocupar 100% da altura */
+[data-sidebar="inset"] {
+  min-height: 100svh;
+}
+
+/* Scrollbar fina global */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
