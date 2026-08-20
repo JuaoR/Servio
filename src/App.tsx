@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Comanda } from './types';
 import { useAuth } from './hooks/useAuth';
@@ -34,10 +34,17 @@ export default function App(){
  const {categories,products,history,setHistory,funcionarios,handleCreateProduct,handleUpdateProduct,handleDeleteProduct,handleCreateCategory,handleUpdateCategory,handleDeleteCategory,handleCreateFuncionario,handleUpdateFuncionario,handleDeleteFuncionario,clearHistory}=useRestaurantData(restaurantId);
  const {caixaAtiva,caixaSessoes,movimentacoesCaixa,setMovimentacoesCaixa,fechamentosCaixa,handleAbrirCaixaSubmit,handleFecharCaixaSubmit,handleSangriaOuSuprimentoSubmit}=useCaixa(restaurantId,ownerName);
  const {comandas,handleMetaUpdate,handleItemsUpdate,handleOpenComanda,handleConfirmPayment,handleCloseEmptyComanda}=useComandas(restaurantId,ownerName,caixaAtiva,setMovimentacoesCaixa,setHistory);
- const [currentView,setCurrentView]=useState<View>(isEmployee?'comandas':'dashboard');
+ const [currentView,setCurrentView]=useState<View>('dashboard');
  const [activeComandaId,setActiveComandaId]=useState<number|null>(null); const [showPaymentId,setShowPaymentId]=useState<number|null>(null); const [modalAbrirCaixa,setModalAbrirCaixa]=useState(false); const [modalFecharCaixa,setModalFecharCaixa]=useState(false); const [modalSangriaTipo,setModalSangriaTipo]=useState<'sangria'|'suprimento'|null>(null);
  const activeComandasCount=(Object.values(comandas) as Comanda[]).filter(c=>c.status==='aberta').length;
  const navigate=(view:View)=>{if(isEmployee&&!['comandas','produtos','categorias'].includes(view))return;setCurrentView(view)};
+
+ // Funcionário sempre entra em Comandas; administrador mantém Dashboard como padrão.
+ useEffect(()=>{
+   if (!isLoggedIn) return;
+   setCurrentView(isEmployee ? 'comandas' : 'dashboard');
+ }, [isLoggedIn, isEmployee]);
+
  if(!isLoggedIn||isRecoveryMode)return <Login onLogin={handleLoginSuccess} isRecoveryMode={isRecoveryMode} onRecoveryComplete={()=>{setIsRecoveryMode(false);handleLogout()}}/>;
  const renderView=()=>{switch(currentView){
   case 'dashboard':return isEmployee?null:<Dashboard comandas={comandas} history={history} rname={rname} ownerName={ownerName} onNavigate={navigate} onOpenComanda={setActiveComandaId}/>;
