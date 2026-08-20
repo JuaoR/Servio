@@ -287,50 +287,42 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
             return;
           }
           // Buscar restaurante pelo identificador
-          const { data: restaurant, error: restErr } = await supabase
-            .from('restaurants')
-            .select('id')
-            .eq('owner_name', identifier.trim().toLowerCase())
-            .single();
-          if (restErr || !restaurant) {
-            handleFailedAttempt();
-            setError('Identificador do restaurante não encontrado.');
-            setIsLoading(false);
-            return;
-          }
+          const { data: restaurantId, error: restErr } = await supabase
+  .rpc('find_restaurant_by_identifier', {
+    p_identifier: identifier.trim().toLowerCase()
+  });
+
+if (restErr || !restaurantId) {
+  handleFailedAttempt();
+  setError('Identificador do restaurante não encontrado.');
+  setIsLoading(false);
+  return;
+}
           // Buscar funcionário pelo code (username) e restaurant_id
-          const { data: waiter, error: waiterErr } = await supabase
-            .from('waiters')
-            .select('*')
-            .eq('restaurant_id', restaurant.id)
-            .eq('code', username.trim().toLowerCase())
-            .eq('is_active', true)
-            .single();
-          if (waiterErr || !waiter) {
-            handleFailedAttempt();
-            setError('Usuário não encontrado ou inativo.');
-            setIsLoading(false);
-            return;
-          }
-          // Verificar senha (armazenada em campo password ou pin)
-          const storedPass = waiter.password || waiter.pin || '';
-          if (storedPass !== password) {
-            handleFailedAttempt();
-            setError('Senha incorreta.');
-            setIsLoading(false);
-            return;
-          }
-          // Login bem-sucedido — criar sessão no banco Supabase
+          const { data: waiterId, error: waiterErr } = await supabase
+  .rpc('authenticate_employee', {
+    p_restaurant_id: restaurantId,
+    p_code: username.trim().toLowerCase(),
+    p_password: password
+  });
+
+if (waiterErr || !waiterId) {
+  handleFailedAttempt();
+  setError('Usuário ou senha incorretos.');
+  setIsLoading(false);
+  return;
+}
+                              // Login bem-sucedido — criar sessão no banco Supabase
           setFailedAttempts(0);
           localStorage.removeItem('servio_auth_attempts');
           
           // Limpar sessões antigas deste funcionário
-          await supabase.from('employee_sessions').delete().eq('waiter_id', waiter.id);
+          await supabase.from('employee_sessions').delete().eq('waiter_id', waiterId);
           
           // Criar nova sessão
           const { data: newSession, error: sessionErr } = await supabase
             .from('employee_sessions')
-            .insert({ waiter_id: waiter.id, restaurant_id: restaurant.id })
+            .insert({ waiter_id: waiterId, restaurant_id: restaurantId })
             .select()
             .single();
           
