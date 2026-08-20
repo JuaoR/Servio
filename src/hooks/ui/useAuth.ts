@@ -15,33 +15,6 @@ export function useAuth() {
 
   // 1. Obter sessão inicial
   useEffect(() => {
-    // Verificar sessão de funcionário via token no banco
-    const empToken = localStorage.getItem('servio_emp_token');
-    if (empToken) {
-      supabase
-        .from('employee_sessions')
-        .select('*, waiters(name, code), restaurants(name, owner_name, logo_url)')
-        .eq('token', empToken)
-        .gt('expires_at', new Date().toISOString())
-        .single()
-        .then(({ data: sess }) => {
-          if (sess) {
-            setRestaurantId(sess.restaurant_id);
-            setIdentifier((sess.restaurants as any)?.owner_name || '');
-            setOwnerName((sess.waiters as any)?.name || '');
-            setUserRole('employee');
-            setRname((sess.restaurants as any)?.name || '');
-            const logo = (sess.restaurants as any)?.logo_url;
-            if (logo) setLogoUrl(logo);
-            setIsLoggedIn(true);
-          } else {
-            // Token expirado ou inválido
-            localStorage.removeItem('servio_emp_token');
-          }
-        });
-      return;
-    }
-
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       if (currentSession) {
@@ -127,11 +100,6 @@ export function useAuth() {
       setOwnerName('');
       setLogoUrl('');
       setProfilePhoto('');
-      const empToken = localStorage.getItem('servio_emp_token');
-      if (empToken) {
-        supabase.from('employee_sessions').delete().eq('token', empToken).then(() => {});
-        localStorage.removeItem('servio_emp_token');
-      }
     }
   }, [isLoggedIn, session]);
 

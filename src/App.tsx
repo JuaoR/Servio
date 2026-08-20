@@ -39,7 +39,7 @@ export default function App() {
   const {
     isLoggedIn, isRecoveryMode, setIsRecoveryMode,
     restaurantId, identifier, setIdentifier,
-    rname, setRname, ownerName, setOwnerName, logoUrl,
+    rname, setRname, ownerName, setOwnerName, logoUrl, profilePhoto, setProfilePhoto,
     handleLoginSuccess, handleLogout,
   } = useAuth();
 
@@ -155,6 +155,7 @@ export default function App() {
             onUpdateIdentifier={setIdentifier} rname={rname}
             onUpdateRname={setRname} ownerName={ownerName}
             onUpdateOwnerName={setOwnerName}
+            onProfilePhotoChange={setProfilePhoto}
             isDark={document.documentElement.classList.contains('dark')}
             toggleTheme={() => {}}
             onLogout={handleLogout}
@@ -176,13 +177,14 @@ export default function App() {
             rname={rname}
             ownerName={ownerName}
             logoUrl={logoUrl}
+            profilePhoto={profilePhoto}
             activeComandasCount={activeComandasCount}
             caixaAtiva={!!caixaAtiva}
             onLogout={handleLogout}
           />
 
           <SidebarInset>
-            <Header currentView={currentView} ownerName={ownerName} />
+            <Header currentView={currentView} ownerName={ownerName} logoUrl={profilePhoto} onNavigate={setCurrentView} onLogout={handleLogout} />
 
             <main className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
               {renderView()}
@@ -223,7 +225,7 @@ export default function App() {
               <PaymentModal
                 id={showPaymentId}
                 comanda={comandas[showPaymentId]}
-                onClose={() => setShowPaymentId(null)}
+                onClose={() => { setShowPaymentId(null); setActiveComandaId(null); }}
                 onConfirmPayment={handleConfirmPayment}
               />
             )}
@@ -233,7 +235,7 @@ export default function App() {
             {modalAbrirCaixa && (
               <CaixaAbertura
                 operador={ownerName || 'Admin'}
-                onAbrir={handleAbrirCaixaSubmit}
+                onAbrir={async (dados) => { setModalFecharCaixa(false); await handleAbrirCaixaSubmit(dados); }}
                 onClose={() => setModalAbrirCaixa(false)}
               />
             )}

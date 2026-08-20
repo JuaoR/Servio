@@ -169,6 +169,14 @@ export function useCaixa(restaurantId: string, ownerName: string) {
 
       if (fechErr) {
         console.error('[handleFecharCaixaSubmit] Erro:', fechErr);
+        const code = (fechErr as any)?.code || '';
+        const msg = (fechErr as any)?.message || '';
+        if (code === 'P0001' || msg.includes('CAIXA')) {
+          // Sessão já fechada — sincronizar estado local
+          setCaixaAtiva(null);
+          setCaixaSessoes(prev => prev.map(s => s.id === caixaAtiva.id ? { ...s, status: 'fechado', fechadoEm: Date.now() } : s));
+          return true; // tratar como sucesso pois o caixa já estava fechado
+        }
         alert('Erro ao fechar o caixa: ' + mapSupabaseError(fechErr));
         return false;
       }

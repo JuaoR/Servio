@@ -38,7 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useTheme } from '@/context/theme-provider'
 
@@ -59,6 +59,7 @@ interface AppSidebarProps {
   rname: string
   ownerName: string
   logoUrl?: string
+  profilePhoto?: string
   activeComandasCount: number
   caixaAtiva: boolean
   onLogout: () => void
@@ -70,6 +71,7 @@ export function AppSidebar({
   rname,
   ownerName,
   logoUrl,
+  profilePhoto,
   activeComandasCount,
   caixaAtiva,
   onLogout,
@@ -110,15 +112,15 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="gap-3 cursor-default hover:bg-transparent active:bg-transparent">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden bg-sky-600/10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg overflow-hidden bg-sky-600/10">
                 <img
-                  src={logoUrl || '/images/logo.png'}
+                  src='/images/logo.png'
                   alt="Servio"
-                  className="w-6 h-6 object-contain"
+                  className="w-8 h-8 object-contain"
                 />
               </div>
               <div className="grid flex-1 text-start leading-tight">
-                <span className="truncate font-bold text-sky-600 font-serif tracking-tight text-base">Servio</span>
+                <span className="truncate font-bold text-sky-600 tracking-wide text-xl" style={{fontFamily:"'Rajdhani', sans-serif", letterSpacing:"0.04em"}}>Servio</span>
                 <span className="truncate text-xs text-muted-foreground">{rname || 'Meu Restaurante'}</span>
               </div>
             </SidebarMenuButton>
@@ -142,7 +144,7 @@ export function AppSidebar({
                   <Icon />
                   <span>{label}</span>
                   {badge && (
-                    <span className={`ms-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${badgeColor}`}>
+                    <span className={`ms-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${badgeColor} dark:text-black`}>
                       {badge}
                     </span>
                   )}
@@ -222,6 +224,7 @@ export function AppSidebar({
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
+                    {profilePhoto && <AvatarImage src={profilePhoto} alt={ownerName} className="rounded-lg object-cover" />}
                     <AvatarFallback className="rounded-lg bg-sky-600/10 text-sky-600 font-bold text-sm">
                       {initials}
                     </AvatarFallback>
@@ -242,6 +245,7 @@ export function AppSidebar({
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
+                      {profilePhoto && <AvatarImage src={profilePhoto} alt={ownerName} className="rounded-lg object-cover" />}
                       <AvatarFallback className="rounded-lg bg-sky-600/10 text-sky-600 font-bold">
                         {initials}
                       </AvatarFallback>

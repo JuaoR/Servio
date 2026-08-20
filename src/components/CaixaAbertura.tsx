@@ -5,7 +5,7 @@ import { CaixaSessao } from '../types';
 
 interface CaixaAberturaProps {
   operador: string;
-  onAbrir: (sessao: Omit<CaixaSessao, 'id' | 'fechadoEm' | 'status'>) => void;
+  onAbrir: (sessao: Omit<CaixaSessao, 'id' | 'fechadoEm' | 'status'>) => void | Promise<any>;
   onClose: () => void;
 }
 
@@ -13,12 +13,16 @@ export default function CaixaAbertura({ operador, onAbrir, onClose }: CaixaAbert
   const [saldoInicial, setSaldoInicial] = useState('');
   const [obs, setObs] = useState('');
   const [step, setStep] = useState<'form' | 'confirm'>('form');
+  const [loading, setLoading] = useState(false);
 
   const numSaldo = parseFloat(saldoInicial.replace(',', '.')) || 0;
   const now = new Date();
 
-  const handleConfirm = () => {
-    onAbrir({
+  const handleConfirm = async () => {
+    if (loading) return;
+    setLoading(true);
+    onClose(); // fecha imediatamente
+    await onAbrir({
       saldoInicial: numSaldo,
       abertoEm: Date.now(),
       operador,
@@ -163,7 +167,8 @@ export default function CaixaAbertura({ operador, onAbrir, onClose }: CaixaAbert
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-[#090D14] font-black text-xs rounded-xl cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all"
+                  disabled={loading}
+                  className="py-2.5 bg-emerald-500 hover:bg-emerald-600 text-[#090D14] font-black text-xs rounded-xl cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ✓ Abrir Caixa
                 </button>

@@ -281,14 +281,69 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
       try {
         let loginEmail = email;
         if (isEmployeeLogin) {
-          if (!identifier || !username) {
-            setError('Preencha o identificador do restaurante e o usuário.');
+          if (!identifier || !username || !password) {
+            setError('Preencha o identificador, usuário e senha.');
             setIsLoading(false);
             return;
           }
-          const safeUsername = username.toLowerCase().replace(/[^a-z0-9]/g, '');
-          const safeDomain = identifier.toLowerCase().replace(/[^a-z0-9]/g, '');
-          loginEmail = `${safeUsername}@${safeDomain}.com`;
+          // Buscar restaurante pelo identificador
+          const { data: restaurant, error: restErr } = await supabase
+            .from('restaurants')
+            .select('id')
+            .eq('owner_name', identifier.trim().toLowerCase())
+            .single();
+          if (restErr || !restaurant) {
+            handleFailedAttempt();
+            setError('Identificador do restaurante não encontrado.');
+            setIsLoading(false);
+            return;
+          }
+          // Buscar funcionário pelo code (username) e restaurant_id
+          const { data: waiter, error: waiterErr } = await supabase
+            .from('waiters')
+            .select('*')
+            .eq('restaurant_id', restaurant.id)
+            .eq('code', username.trim().toLowerCase())
+            .eq('is_active', true)
+            .single();
+          if (waiterErr || !waiter) {
+            handleFailedAttempt();
+            setError('Usuário não encontrado ou inativo.');
+            setIsLoading(false);
+            return;
+          }
+          // Verificar senha (armazenada em campo password ou pin)
+          const storedPass = waiter.password || waiter.pin || '';
+          if (storedPass !== password) {
+            handleFailedAttempt();
+            setError('Senha incorreta.');
+            setIsLoading(false);
+            return;
+          }
+          // Login bem-sucedido — criar sessão no banco Supabase
+          setFailedAttempts(0);
+          localStorage.removeItem('servio_auth_attempts');
+          
+          // Limpar sessões antigas deste funcionário
+          await supabase.from('employee_sessions').delete().eq('waiter_id', waiter.id);
+          
+          // Criar nova sessão
+          const { data: newSession, error: sessionErr } = await supabase
+            .from('employee_sessions')
+            .insert({ waiter_id: waiter.id, restaurant_id: restaurant.id })
+            .select()
+            .single();
+          
+          if (sessionErr || !newSession) {
+            setError('Erro ao criar sessão. Tente novamente.');
+            setIsLoading(false);
+            return;
+          }
+          
+          // Salvar apenas o token (não dados sensíveis) no localStorage
+          localStorage.setItem('servio_emp_token', newSession.token);
+          onLogin();
+          return;
         }
 
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -299,10 +354,6 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
           handleFailedAttempt();
           setError(translateAuthError(authError.message));
         } else if (authData.user) {
-          // Removed profile check here since the email already binds them to the correct identifier domain
-          // The application will handle loading their specific restaurant data based on their profile later.
-          
-          // Reset cooldown on successful login
           setFailedAttempts(0);
           localStorage.removeItem('servio_auth_attempts');
           onLogin();
@@ -744,7 +795,13 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                       {view === 'login' && (
                         <button
                           type="button"
-                          onClick={() => { setViewState('forgot'); setError(null); setSuccess(null); }}
+                          onClick={() => {
+                            if (isEmployeeLogin) {
+                              setError('Para recuperar sua senha, solicite ao administrador do restaurante que redefina suas credenciais de acesso.');
+                            } else {
+                              setViewState('forgot'); setError(null); setSuccess(null);
+                            }
+                          }}
                           className="text-xs text-blue-600 hover:underline cursor-pointer font-semibold transition-colors"
                         >
                           Esqueceu a senha?
@@ -905,6 +962,10 @@ export default function Login({ onLogin, isRecoveryMode = false, onRecoveryCompl
                       type="button"
                       onClick={() => {
                         setIsEmployeeLogin(!isEmployeeLogin);
+                      setIdentifier('');
+                      setUsername('');
+                      setPassword('');
+                      setError(null);
                         setError(null);
                         setSuccess(null);
                       }}

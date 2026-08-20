@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Comanda } from '../types';
 import { X, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 const PixIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
-    <path d="M119.5 390.6L37.1 308.2C24.3 295.4 24.3 274.6 37.1 261.8L119.5 179.4C128.5 170.4 140.5 166.4 152 167.4L113.6 205.8C103.6 215.8 103.6 232.2 113.6 242.2L159.2 287.8C169.2 297.8 185.6 297.8 195.6 287.8L234 249.4C244 239.4 244 223 234 213L188.4 167.4C185.2 164.2 181.4 162 177.3 160.8C189.6 156.4 203.8 158 214.5 168.6L296.9 251C309.7 263.8 309.7 284.6 296.9 297.4L214.5 379.8C203.8 390.4 189.6 392 177.3 387.6C181.4 386.4 185.2 384.2 188.4 381L234 335.4C244 325.4 244 309 234 299L195.6 260.6C185.6 250.6 169.2 250.6 159.2 260.6L113.6 306.2C103.6 316.2 103.6 332.6 113.6 342.6L152 381C140.5 382 128.5 378 119.5 390.6Z" fill="#32BCAD"/>
-    <path d="M474.9 261.8L392.5 179.4C379.7 166.6 358.9 166.6 346.1 179.4L263.7 261.8C250.9 274.6 250.9 295.4 263.7 308.2L346.1 390.6C358.9 403.4 379.7 403.4 392.5 390.6L474.9 308.2C487.7 295.4 487.7 274.6 474.9 261.8ZM335.4 299C325.4 309 309 309 299 299L260.6 260.6C250.6 250.6 250.6 234.2 260.6 224.2L299 185.8C309 175.8 325.4 175.8 335.4 185.8L381 231.4C391 241.4 391 257.8 381 267.8L335.4 313.4V299Z" fill="#32BCAD"/>
-  </svg>
+  <img src="/images/pix-logo.jpg" alt="Pix" className="w-6 h-6 object-contain rounded-sm" />
 );
 
 interface PaymentModalProps {
   id: number;
   comanda: Comanda;
   onClose: () => void;
-  onConfirmPayment: (id: number, method: string, received?: number) => void;
+  onConfirmPayment: (id: number, method: string, received?: number) => void | Promise<any>;
 }
 
 const PAYMENT_METHODS = [
@@ -27,6 +24,12 @@ const PAYMENT_METHODS = [
 export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }: PaymentModalProps) {
   const [method, setMethod] = useState('pix');
   const [received, setReceived] = useState('');
+  // Preenche valor recebido com total quando muda para dinheiro
+  useEffect(() => {
+    if (method === 'dinheiro' && !received) {
+      setReceived(totalVal.toFixed(2).replace('.', ','));
+    }
+  }, [method]);
 
   const subTotal = comanda.items.reduce((s, it) => s + it.price * it.qty, 0);
   const totalVal = Math.max(0, subTotal - (comanda.discount || 0));
@@ -34,14 +37,18 @@ export default function PaymentModal({ id, comanda, onClose, onConfirmPayment }:
   const numericReceived = parseFloat(received) || 0;
   const change = numericReceived - totalVal;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (method === 'dinheiro') {
-      if (numericReceived < totalVal) {
+      const recVal = numericReceived || totalVal; // sem troco = já trocado
+      if (recVal < totalVal) {
         alert('Valor recebido menor que o total!');
         return;
       }
+      await onConfirmPayment(id, method, recVal);
+    } else {
+      await onConfirmPayment(id, method, undefined);
     }
-    onConfirmPayment(id, method, method === 'dinheiro' ? numericReceived : undefined);
+    onClose();
   };
 
   return (

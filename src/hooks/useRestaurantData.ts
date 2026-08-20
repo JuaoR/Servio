@@ -42,7 +42,10 @@ export function useRestaurantData(restaurantId: string) {
           }
           if (dbWaiters) {
             setFuncionarios(dbWaiters.map((w: any) => ({
-              id: w.id, name: w.name, code: w.code, phone: w.phone, email: w.email,
+              id: w.id, name: w.name,
+              code: w.code, username: w.code,  // code = username de login
+              password: w.password || '',
+              phone: w.phone, whatsapp: w.phone, email: w.email,
               active: w.is_active, is_active: w.is_active,
               commissionRate: Number(w.commission_rate || 0), commission_rate: Number(w.commission_rate || 0),
               restaurant_id: w.restaurant_id
@@ -149,19 +152,35 @@ export function useRestaurantData(restaurantId: string) {
   // Funcionarios CRUD
   const handleCreateFuncionario = async (g: Omit<Funcionario, 'id'> & { id?: string }) => {
     if (!restaurantId) return;
+    // Se já tem id, o insert foi feito em Funcionarios.tsx — só adicionar ao estado local
+    if (g.id) {
+      const newFunc: Funcionario = {
+        id: g.id, name: g.name,
+        username: g.username, code: g.username,
+        phone: g.whatsapp || g.phone || '', email: g.email || '',
+        active: true, is_active: true,
+        commissionRate: 0, commission_rate: 0,
+        restaurant_id: restaurantId,
+      };
+      setFuncionarios(prev => [...prev, newFunc]);
+      return;
+    }
+    // Fallback: insert direto
     const { data, error } = await supabase
       .from('waiters')
-      .insert([{ restaurant_id: restaurantId, name: g.name, code: g.code || g.username || String(Date.now()).slice(-4), phone: g.whatsapp || g.phone, email: g.email, is_active: g.active ?? true, commission_rate: g.commissionRate ?? 0 }])
+      .insert([{ restaurant_id: restaurantId, name: g.name, code: g.username || String(Date.now()).slice(-4), password: g.password || null, phone: g.whatsapp || g.phone, email: g.email, is_active: true, commission_rate: 0 }])
       .select().single();
     if (error) { alert('Erro ao criar funcionário: ' + mapSupabaseError(error)); return; }
-    const newFunc: Funcionario = { id: data.id, name: data.name, code: data.code, phone: data.phone, email: data.email, active: data.is_active, is_active: data.is_active, commissionRate: Number(data.commission_rate), commission_rate: Number(data.commission_rate), restaurant_id: data.restaurant_id };
+    const newFunc: Funcionario = { id: data.id, name: data.name, username: data.code, code: data.code, phone: data.phone, email: data.email, active: data.is_active, is_active: data.is_active, commissionRate: Number(data.commission_rate), commission_rate: Number(data.commission_rate), restaurant_id: data.restaurant_id };
     setFuncionarios(prev => [...prev, newFunc]);
   };
 
   const handleUpdateFuncionario = async (id: string, updatedFields: Partial<Funcionario>) => {
     const dbFields: any = {};
     if (updatedFields.name !== undefined) dbFields.name = updatedFields.name;
+    if (updatedFields.username !== undefined) dbFields.code = updatedFields.username;
     if (updatedFields.code !== undefined) dbFields.code = updatedFields.code;
+    if (updatedFields.password !== undefined && updatedFields.password !== '') dbFields.password = updatedFields.password;
     if (updatedFields.phone !== undefined) dbFields.phone = updatedFields.phone;
     if (updatedFields.whatsapp !== undefined) dbFields.phone = updatedFields.whatsapp;
     if (updatedFields.email !== undefined) dbFields.email = updatedFields.email;

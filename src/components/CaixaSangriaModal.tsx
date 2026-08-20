@@ -14,9 +14,10 @@ export default function CaixaSangriaModal({ tipo, operador, onConfirm, onClose }
   const [valor, setValor] = useState('');
   const [motivo, setMotivo] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const isSangria = tipo === 'sangria';
-  const numValor = parseFloat(valor.replace(',', '.')) || 0;
+  const numValor = parseFloat(valor.replace(/\./g, '').replace(',', '.')) || 0;
 
   const accentColor = isSangria ? 'text-red-400' : 'text-emerald-500';
   const accentBg = isSangria ? 'bg-red-500/10 border-red-500/20' : 'bg-emerald-500/10 border-emerald-500/20';
@@ -28,7 +29,8 @@ export default function CaixaSangriaModal({ tipo, operador, onConfirm, onClose }
   const motivosSuprimento = ['Troco inicial adicional', 'Reforço de caixa', 'Entrada de dinheiro', 'Outro'];
   const motivosSugeridos = isSangria ? motivosSangria : motivosSuprimento;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (loading) return;
     setError('');
     if (numValor <= 0) {
       setError('Informe um valor maior que zero.');
@@ -38,7 +40,9 @@ export default function CaixaSangriaModal({ tipo, operador, onConfirm, onClose }
       setError('O motivo é obrigatório.');
       return;
     }
-    onConfirm(tipo as MovimentacaoTipo, isSangria ? -numValor : numValor, motivo.trim());
+    setLoading(true);
+    onClose(); // fecha imediatamente antes de processar
+    await onConfirm(tipo as MovimentacaoTipo, isSangria ? -numValor : numValor, motivo.trim());
   };
 
   return (
@@ -94,11 +98,10 @@ export default function CaixaSangriaModal({ tipo, operador, onConfirm, onClose }
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--text-muted)]">R$</span>
               <input
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
+                inputMode="decimal"
                 value={valor}
-                onChange={e => setValor(e.target.value)}
+                onChange={e => setValor(e.target.value.replace(/[^0-9,.]/g, ''))}
                 placeholder="0,00"
                 className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none focus:border-sky-500 transition-colors"
                 autoFocus

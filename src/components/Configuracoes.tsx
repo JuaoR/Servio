@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../context/theme-provider';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Settings, 
@@ -34,6 +35,7 @@ interface ConfiguracoesProps {
   toggleTheme: () => void;
   onLogout: () => void;
   onClearLocalData: () => void;
+  onProfilePhotoChange?: (photo: string) => void;
 }
 
 type TabType = 'geral' | 'impressao' | 'conta' | 'backup';
@@ -49,7 +51,8 @@ export default function Configuracoes({
   isDark, 
   toggleTheme,
   onLogout,
-  onClearLocalData
+  onClearLocalData,
+  onProfilePhotoChange
 }: ConfiguracoesProps) {
   const [activeTab, setActiveTab] = useState<TabType>('geral');
   
@@ -63,7 +66,7 @@ export default function Configuracoes({
   const [stateCode, setStateCode] = useState('SP');
   const [zipCode, setZipCode] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [theme, setTheme] = useState<'light'|'dark'|'system'>('system');
+  const { theme, setTheme } = useTheme();
   const [currency, setCurrency] = useState('BRL');
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
   const [isUploading, setIsUploading] = useState(false);
@@ -202,21 +205,7 @@ export default function Configuracoes({
   };
 
   const applyThemeSetting = (selectedTheme: string) => {
-    let finalTheme = selectedTheme;
-    if (selectedTheme === 'system') {
-      finalTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      localStorage.removeItem('servio_theme');
-    } else {
-      localStorage.setItem('servio_theme', selectedTheme);
-    }
-    
-    if (finalTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      if (!isDark) toggleTheme(); // Sync app state if needed
-    } else {
-      document.documentElement.classList.remove('dark');
-      if (isDark) toggleTheme();
-    }
+    setTheme(selectedTheme as 'light' | 'dark' | 'system');
   };
 
   const handleSaveImpressao = async () => {
@@ -355,6 +344,9 @@ export default function Configuracoes({
             const dataUrl = canvas.toDataURL('image/webp', 0.8);
             
             setLogoUrl(dataUrl);
+            if (restaurantId) localStorage.setItem('servio_logo_' + restaurantId, dataUrl);
+            if (restaurantId) localStorage.setItem('servio_profile_photo_' + restaurantId, dataUrl);
+            onProfilePhotoChange?.(dataUrl);
             
             const { error: updateErr } = await supabase.from('restaurants').update({ logo_url: dataUrl }).eq('id', restaurantId);
             
@@ -389,6 +381,9 @@ export default function Configuracoes({
   const handleRemoveLogo = async () => {
     if (!restaurantId) return;
     setLogoUrl(null);
+    if (restaurantId) localStorage.removeItem('servio_logo_' + restaurantId);
+    if (restaurantId) localStorage.removeItem('servio_profile_photo_' + restaurantId);
+    onProfilePhotoChange?.('');
     await supabase.from('restaurants').update({ logo_url: null }).eq('id', restaurantId);
   };
 

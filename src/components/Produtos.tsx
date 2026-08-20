@@ -82,7 +82,7 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
   return (
     <div className="space-y-4">
       {/* Search & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
+      <div className="flex flex-wrap items-center gap-3 bg-[var(--bg-card)] border border-[var(--border-color)] p-4 rounded-xl">
         <button
           onClick={handleOpenCreate}
           className="btn btn-primary self-start sm:self-auto cursor-pointer shrink-0"
@@ -90,21 +90,20 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
           <Plus size={15} />
           <span>Novo Produto</span>
         </button>
-        
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          {/* Category Filter */}
-          <select
-            value={selectedCat}
-            onChange={(e) => setSelectedCat(e.target.value)}
-            className="w-full sm:w-auto bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-sky-500"
-          >
-            <option value="all">Todas as Categorias</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
+
+        {/* Category Filter — ao lado direito do botão */}
+        <select
+          value={selectedCat}
+          onChange={(e) => setSelectedCat(e.target.value)}
+          className="bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs text-[var(--text-main)] outline-none focus:border-sky-500 cursor-pointer"
+        >
+          <option value="all">Todas as Categorias</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
             ))}
-          </select>
+        </select>
           
           {/* Search */}
           <div className="relative w-full sm:w-64">
@@ -116,7 +115,6 @@ export default function Produtos({ products, categories, onCreateProduct, onUpda
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-main)] placeholder-[#484F58] outline-none focus:border-sky-500"
             />
-          </div>
         </div>
       </div>
 
