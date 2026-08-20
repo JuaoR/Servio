@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 
 export function useAuth() {
@@ -13,25 +13,20 @@ export function useAuth() {
   const [logoUrl, setLogoUrl] = useState('');
   const [profilePhoto, setProfilePhoto] = useState('');
 
-  const loadEmployee = async (token: string) => {
+  const loadEmployeeSession = useCallback(async (token: string) => {
     const { data: sess, error } = await supabase
       .from('employee_sessions')
-      .select('*, waiters(name, code), restaurants(name, owner_name, logo_url)')
+      .select('token, waiter_id, restaurant_id, expires_at')
       .eq('token', token)
       .gt('expires_at', new Date().toISOString())
-      .single();
+      .maybeSingle();
+
     if (error || !sess) return false;
 
-    let restaurant: any = sess.restaurants;
-    if (!restaurant?.name) {
-      const { data } = await supabase.from('restaurants').select('name, owner_name, logo_url').eq('id', sess.restaurant_id).single();
-      restaurant = data;
-    }
-    let waiter: any = sess.waiters;
-    if (!waiter?.name) {
-      const { data } = await supabase.from('waiters').select('name, code').eq('id', sess.waiter_id).single();
-      waiter = data;
-    }
+    const [{ data: restaurant }, { data: waiter }] = await Promise.all([
+      supabase.from('restaurants').select('name, owner_name, logo_url').eq('id', sess.restaurant_id).maybeSingle(),
+      supabase.from('waiters').select('name, code').eq('id', sess.waiter_id).maybeSingle()
+    ]);
 
     setRestaurantId(sess.restaurant_id || '');
     setIdentifier(restaurant?.owner_name || '');
@@ -41,15 +36,15 @@ export function useAuth() {
     setLogoUrl(restaurant?.logo_url || '');
     setIsLoggedIn(true);
     return true;
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     const initialize = async () => {
-      const token = localStorage.getItem('servio_emp_token');
-      if (token) {
-        const ok = await loadEmployee(token);
-        if (ok || cancelled) return;
+      const empToken = localStorage.getItem('servio_emp_token');
+      if (empToken) {
+        const loaded = await loadEmployeeSession(empToken);
+        if (loaded || cancelled) return;
         localStorage.removeItem('servio_emp_token');
       }
       const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -70,7 +65,7 @@ export function useAuth() {
       }
     });
     return () => { cancelled = true; subscription.unsubscribe(); };
-  }, []);
+  }, [loadEmployeeSession]);
 
   useEffect(() => {
     if (localStorage.getItem('servio_emp_token')) return;
@@ -84,27 +79,33 @@ export function useAuth() {
     const fetchProfile = async () => {
       try {
         const { data: profileData, error: profileError } = await supabase
-          .from('profiles').select('restaurant_id, role, name, restaurants(name, owner_name, logo_url)')
+          .from('profiles')
+          .select('restaurant_id, role, name, restaurants(name, owner_name, logo_url)')
           .eq('id', session.user.id).single();
         if (profileData && !profileError) {
           const restId = profileData.restaurant_id;
-          const restaurant = (profileData as any).restaurants;
           setRestaurantId(restId); setUserRole(profileData.role || 'admin');
+          const restaurant = (profileData as any).restaurants;
           setIdentifier(session.user?.user_metadata?.restaurant_id || restaurant?.owner_name || '');
           setRname(restaurant?.name || 'Restaurante'); setOwnerName(profileData.name || '');
           const logo = restaurant?.logo_url || localStorage.getItem('servio_logo_' + restId) || '';
-          setLogoUrl(logo); if (logo) localStorage.setItem('servio_logo_' + restId, logo);
-          const photo = localStorage.getItem('servio_profile_photo_' + restId); if (photo) setProfilePhoto(photo);
+          setLogoUrl(logo);
+          if (logo) localStorage.setItem('servio_logo_' + restId, logo);
+          const photo = localStorage.getItem('servio_profile_photo_' + restId);
+          if (photo) setProfilePhoto(photo);
         }
-      } catch (e) { console.error('Erro ao obter perfil:', e); }
+      } catch (e) {
+        console.error('Erro ao obter perfil do restaurante:', e);
+        setRname('Erro ao carregar');
+      }
     };
     fetchProfile();
   }, [isLoggedIn, session]);
 
   const handleLoginSuccess = async () => {
-    const token = localStorage.getItem('servio_emp_token');
-    if (token) {
-      await loadEmployee(token);
+    const empToken = localStorage.getItem('servio_emp_token');
+    if (empToken) {
+      await loadEmployeeSession(empToken);
       return;
     }
     setIsLoggedIn(true);
@@ -113,14 +114,14 @@ export function useAuth() {
   };
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('servio_emp_token');
-    if (token) {
-      await supabase.from('employee_sessions').delete().eq('token', token);
+    const empToken = localStorage.getItem('servio_emp_token');
+    if (empToken) {
+      await supabase.from('employee_sessions').delete().eq('token', empToken);
       localStorage.removeItem('servio_emp_token');
     }
     await supabase.auth.signOut();
     setIsLoggedIn(false); setSession(null); setIsRecoveryMode(false);
-    setUserRole('admin'); setRestaurantId(''); setRname('Carregando...'); setOwnerName(''); setLogoUrl(''); setProfilePhoto('');
+    setUserRole('admin'); setRestaurantId(''); setIdentifier(''); setRname('Carregando...'); setOwnerName(''); setLogoUrl(''); setProfilePhoto('');
   };
 
   return { isLoggedIn, session, isRecoveryMode, setIsRecoveryMode, userRole, restaurantId, identifier, setIdentifier, rname, setRname, ownerName, setOwnerName, logoUrl, setLogoUrl, profilePhoto, setProfilePhoto, handleLoginSuccess, handleLogout };
