@@ -14,26 +14,15 @@ export function useAuth() {
   const [profilePhoto, setProfilePhoto] = useState('');
 
   const loadEmployeeSession = useCallback(async (token: string) => {
-    const { data: sess, error } = await supabase
-      .from('employee_sessions')
-      .select('token, waiter_id, restaurant_id, expires_at')
-      .eq('token', token)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('get_employee_context', { p_token: token });
+    if (error || !data) return false;
 
-    if (error || !sess) return false;
-
-    const [{ data: restaurant }, { data: waiter }] = await Promise.all([
-      supabase.from('restaurants').select('name, owner_name, logo_url').eq('id', sess.restaurant_id).maybeSingle(),
-      supabase.from('waiters').select('name, code').eq('id', sess.waiter_id).maybeSingle()
-    ]);
-
-    setRestaurantId(sess.restaurant_id || '');
-    setIdentifier(restaurant?.owner_name || '');
-    setOwnerName(waiter?.name || 'Funcionário');
+    setRestaurantId(data.restaurant_id || '');
+    setIdentifier(data.restaurant?.owner_name || '');
+    setOwnerName(data.waiter?.name || 'Funcionário');
     setUserRole('employee');
-    setRname(restaurant?.name || 'Restaurante');
-    setLogoUrl(restaurant?.logo_url || '');
+    setRname(data.restaurant?.name || 'Restaurante');
+    setLogoUrl(data.restaurant?.logo_url || '');
     setIsLoggedIn(true);
     return true;
   }, []);
