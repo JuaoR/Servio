@@ -31,10 +31,7 @@ export function useComandas(restaurantId:string, ownerName:string, caixaAtiva:Ca
       const token=localStorage.getItem('servio_emp_token'); if(!token||cancelled)return;
       const {data,error}=await supabase.rpc('employee_get_comandas',{p_token:token});
       if(error){
-        console.error('[employee_get_comandas]',error);
-        if(error.code==='PGRST202' || error.message?.includes('404') || error.message?.includes('Could not find the function')) {
-          if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
-        }
+        if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
         return;
       }
       if(!cancelled)setComandas(mapEmployeeComandas(data||[]));
@@ -78,7 +75,7 @@ export function useComandas(restaurantId:string, ownerName:string, caixaAtiva:Ca
     if(isEmployeeSession()){
       const token=localStorage.getItem('servio_emp_token');if(!token)return;
       const {data,error}=await supabase.rpc('employee_save_comanda',{p_token:token,p_number:id,p_items:items,p_discount:discount,p_mesa:current?.mesa||'',p_obs:current?.obs||''});
-      if(error){console.error('[handleItemsUpdate] Erro:',error);return}
+      if(error)return;
       setComandas(prev=>({...prev,[id]:{...prev[id],uuid:data?.uuid,status:'aberta',openedAt:Number(data?.openedAt||prev[id].openedAt||Date.now())}}));return;
     }
     let uuid=current?.uuid;
@@ -86,7 +83,7 @@ export function useComandas(restaurantId:string, ownerName:string, caixaAtiva:Ca
     if(!uuid)return;const subtotal=items.reduce((s,it)=>s+it.price*it.qty,0),total=Math.max(0,subtotal-discount);await supabase.from('comanda_items').delete().eq('comanda_id',uuid);if(items.length)await supabase.from('comanda_items').insert(items.map(it=>({comanda_id:uuid,product_id:it.pid,name:it.name,price:it.price,quantity:it.qty,notes:it.note||null})));await supabase.from('comandas').update({discount,subtotal,total,updated_at:new Date().toISOString()}).eq('id',uuid);
   };
 
-  const handleMetaUpdate=async(id:number,meta:{mesa:string;garcom:string;obs:string})=>{const current=comandas[id];setComandas(prev=>({...prev,[id]:{...prev[id],...meta}}));if(!restaurantId)return;if(isEmployeeSession()){const token=localStorage.getItem('servio_emp_token');if(!token)return;const {error}=await supabase.rpc('employee_save_comanda',{p_token:token,p_number:id,p_items:current?.items||[],p_discount:current?.discount||0,p_mesa:meta.mesa,p_obs:meta.obs});if(error)console.error('[handleMetaUpdate] Erro:',error);return}if(current?.uuid){const {error}=await supabase.from('comandas').update({table_number:meta.mesa,notes:meta.obs,updated_at:new Date().toISOString()}).eq('id',current.uuid);if(error)console.error('[handleMetaUpdate] Erro:',error)}};
+  const handleMetaUpdate=async(id:number,meta:{mesa:string;garcom:string;obs:string})=>{const current=comandas[id];setComandas(prev=>({...prev,[id]:{...prev[id],...meta}}));if(!restaurantId)return;if(isEmployeeSession()){const token=localStorage.getItem('servio_emp_token');if(!token)return;const {error}=await supabase.rpc('employee_save_comanda',{p_token:token,p_number:id,p_items:current?.items||[],p_discount:current?.discount||0,p_mesa:meta.mesa,p_obs:meta.obs});return}if(current?.uuid){const {error}=await supabase.from('comandas').update({table_number:meta.mesa,notes:meta.obs,updated_at:new Date().toISOString()}).eq('id',current.uuid);if(error)console.error('[handleMetaUpdate] Erro:',error)}};
 
   const handleConfirmPayment=async(id:number,method:string,_received?:number):Promise<boolean>=>{const current=comandas[id];if(!current||current.items.length===0||!restaurantId)return false;if(isEmployeeSession()){const token=localStorage.getItem('servio_emp_token');if(!token)return false;const {data,error}=await supabase.rpc('employee_close_comanda',{p_token:token,p_number:id,p_method:method});if(error||!data)return false;setComandas(prev=>({...prev,[id]:{id,status:'livre',items:[],mesa:'',garcom:'',obs:'',openedAt:null,discount:0}}));return true}if(!current.uuid)return false;const subtotal=current.items.reduce((s,it)=>s+it.price*it.qty,0),total=Math.max(0,subtotal-(current.discount||0)),now=new Date().toISOString();const {error:closeErr}=await supabase.from('comandas').update({status:'fechada',payment_method:method,subtotal,discount:current.discount||0,total,closed_at:now,updated_at:now}).eq('id',current.uuid);if(closeErr){console.error('[handleConfirmPayment] Erro ao fechar comanda:',closeErr);alert('Erro ao fechar comanda: '+closeErr.message);return false}setComandas(prev=>({...prev,[id]:{id,uuid:undefined,status:'livre',items:[],mesa:'',garcom:'',obs:'',openedAt:null,discount:0}}));setHistory(prev=>[{id:current.uuid!,cmdId:id,mesa:current.mesa||'',garcom:current.garcom||'',obs:current.obs||'',items:current.items.map(it=>({...it})),subtotal,discount:current.discount||0,total,payMethod:method,openedAt:current.openedAt||Date.now(),closedAt:Date.now()},...prev]);return true};
   const handleCloseEmptyComanda=(id:number)=>setComandas(prev=>({...prev,[id]:{...prev[id],status:'livre',openedAt:null}}));
